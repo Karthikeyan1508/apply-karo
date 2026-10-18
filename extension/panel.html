@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Apply करो</title>
+    <style>
+      html, body { height: 100%; margin: 0; background: #081800; color: #e9f8b8; font: 13px/1.4 system-ui, sans-serif; }
+      body { display: flex; flex-direction: column; }
+      header { display: flex; gap: 8px; align-items: center; padding: 8px 10px; border-bottom: 1px solid #1f3a0c; }
+      button { cursor: pointer; border: 0; border-radius: 3px; padding: 8px 12px; font: 600 13px system-ui, sans-serif; background: #e0f16e; color: #081800; }
+      button:disabled { opacity: 0.5; cursor: default; }
+      #status { flex: 1; min-width: 0; color: #b6c98a; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+      iframe { flex: 1; width: 100%; border: 0; background: #081800; }
+      details { padding: 6px 10px; border-top: 1px solid #1f3a0c; color: #b6c98a; }
+      input { width: 100%; box-sizing: border-box; margin-top: 6px; padding: 6px; border-radius: 3px; border: 1px solid #1f3a0c; background: #0d2504; color: inherit; }
+    </style>
+  </head>
+  <body>
+    <header>
+      <button id="read">Read this page</button>
+      <span id="status" role="status">Open a page with a form.</span>
+      <button id="mic" hidden title="Chrome needs to ask once, in a tab">Allow microphone</button>
+    </header>
+    <iframe id="app" title="Apply करो" allow="microphone; clipboard-write"></iframe>
+    <details>
+      <summary>App address</summary>
+      <input id="appUrl" aria-label="App address" />
+    </details>
+    <script src="panel.js"></script>
+  </body>
+</html>

@@ -1,0 +1,308 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+    --font-heading: var(--font-sans);
+    --font-sans: var(--font-sans);
+    --font-deva: var(--font-deva-src), var(--font-sans), sans-serif;
+    --color-sidebar-ring: var(--sidebar-ring);
+    --color-sidebar-border: var(--sidebar-border);
+    --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+    --color-sidebar-accent: var(--sidebar-accent);
+    --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+    --color-sidebar-primary: var(--sidebar-primary);
+    --color-sidebar-foreground: var(--sidebar-foreground);
+    --color-sidebar: var(--sidebar);
+    --color-chart-5: var(--chart-5);
+    --color-chart-4: var(--chart-4);
+    --color-chart-3: var(--chart-3);
+    --color-chart-2: var(--chart-2);
+    --color-chart-1: var(--chart-1);
+    --color-ring: var(--ring);
+    --color-input: var(--input);
+    --color-border: var(--border);
+    --color-destructive: var(--destructive);
+    --color-accent-foreground: var(--accent-foreground);
+    --color-accent: var(--accent);
+    --color-muted-foreground: var(--muted-foreground);
+    --color-muted: var(--muted);
+    --color-secondary-foreground: var(--secondary-foreground);
+    --color-secondary: var(--secondary);
+    --color-primary-foreground: var(--primary-foreground);
+    --color-primary: var(--primary);
+    --color-popover-foreground: var(--popover-foreground);
+    --color-popover: var(--popover);
+    --color-card-foreground: var(--card-foreground);
+    --color-card: var(--card);
+    --color-foreground: var(--foreground);
+    --color-background: var(--background);
+    --color-brand: var(--brand);
+    --color-brand-foreground: var(--brand-foreground);
+    --color-lime: var(--lime);
+    --color-forest: var(--forest);
+    --radius-sm: calc(var(--radius) * 0.6);
+    --radius-md: calc(var(--radius) * 0.8);
+    --radius-lg: var(--radius);
+    --radius-xl: calc(var(--radius) * 1.4);
+    --radius-2xl: calc(var(--radius) * 1.8);
+    --radius-3xl: calc(var(--radius) * 2.2);
+    --radius-4xl: calc(var(--radius) * 2.6);
+}
+
+/*
+ * Palette sampled from the reference: forest #081800, tiles #131e09 / #192d0b,
+ * lime #e0f16e / #daed72 / #cae23d, cream #e9f8b8, olive #648600.
+ * Corners are 2px everywhere. Only the voice orb is round.
+ */
+:root {
+    color-scheme: light;
+    --forest: oklch(0.187 0.054 134);
+    --lime: oklch(0.92 0.156 115.7);
+
+    --background: oklch(0.953 0.084 118.7);
+    --foreground: oklch(0.187 0.054 134);
+    --card: oklch(1 0.03 118 / 0.55);
+    --card-foreground: oklch(0.187 0.054 134);
+    --popover: oklch(0.985 0.035 118);
+    --popover-foreground: oklch(0.187 0.054 134);
+    --primary: oklch(0.2 0.054 134);
+    --primary-foreground: oklch(0.92 0.156 115.7);
+    --secondary: oklch(0.187 0.054 134 / 0.08);
+    --secondary-foreground: oklch(0.187 0.054 134);
+    --muted: oklch(0.187 0.054 134 / 0.07);
+    --muted-foreground: oklch(0.4 0.07 130);
+    --accent: oklch(0.187 0.054 134 / 0.1);
+    --accent-foreground: oklch(0.187 0.054 134);
+    --destructive: oklch(0.52 0.2 27);
+    --border: oklch(0.187 0.054 134 / 0.18);
+    --input: oklch(0.187 0.054 134 / 0.22);
+    --ring: oklch(0.45 0.12 130 / 0.6);
+    --brand: oklch(0.38 0.1 131);
+    --brand-foreground: oklch(0.92 0.156 115.7);
+    --chart-1: oklch(0.867 0.182 117.7);
+    --chart-2: oklch(0.799 0.152 119.6);
+    --chart-3: oklch(0.65 0.124 120.4);
+    --chart-4: oklch(0.573 0.145 125.4);
+    --chart-5: oklch(0.42 0.083 118.3);
+    --radius: 0.125rem;
+    --sidebar: oklch(0.985 0.035 118);
+    --sidebar-foreground: oklch(0.187 0.054 134);
+    --sidebar-primary: oklch(0.2 0.054 134);
+    --sidebar-primary-foreground: oklch(0.92 0.156 115.7);
+    --sidebar-accent: oklch(0.187 0.054 134 / 0.1);
+    --sidebar-accent-foreground: oklch(0.187 0.054 134);
+    --sidebar-border: oklch(0.187 0.054 134 / 0.18);
+    --sidebar-ring: oklch(0.45 0.12 130 / 0.6);
+
+    --glass-tint: oklch(1 0.05 118);
+    --glass-base: oklch(0.99 0.04 118 / 0.3);
+    --glass-edge: oklch(0.187 0.054 134 / 0.2);
+    --glass-hi: oklch(1 0 0 / 0.9);
+    --glass-shadow: oklch(0.3 0.08 130 / 0.4);
+    --offset: oklch(0.187 0.054 134);
+}
+
+.dark {
+    color-scheme: dark;
+
+    --background: oklch(0.187 0.054 134);
+    --foreground: oklch(0.953 0.084 118.7);
+    --card: oklch(0.271 0.062 134 / 0.5);
+    --card-foreground: oklch(0.953 0.084 118.7);
+    --popover: oklch(0.218 0.041 132);
+    --popover-foreground: oklch(0.953 0.084 118.7);
+    --primary: oklch(0.92 0.156 115.7);
+    --primary-foreground: oklch(0.187 0.054 134);
+    --secondary: oklch(0.271 0.062 134 / 0.7);
+    --secondary-foreground: oklch(0.953 0.084 118.7);
+    --muted: oklch(0.271 0.062 134 / 0.55);
+    --muted-foreground: oklch(0.8 0.09 122);
+    --accent: oklch(0.34 0.07 130 / 0.7);
+    --accent-foreground: oklch(0.953 0.084 118.7);
+    --destructive: oklch(0.72 0.19 28);
+    --border: oklch(0.953 0.084 118.7 / 0.16);
+    --input: oklch(0.953 0.084 118.7 / 0.2);
+    --ring: oklch(0.92 0.156 115.7 / 0.6);
+    --brand: oklch(0.92 0.156 115.7);
+    --brand-foreground: oklch(0.187 0.054 134);
+    --chart-1: oklch(0.963 0.13 115.6);
+    --chart-2: oklch(0.92 0.156 115.7);
+    --chart-3: oklch(0.867 0.182 117.7);
+    --chart-4: oklch(0.799 0.152 119.6);
+    --chart-5: oklch(0.573 0.145 125.4);
+    --sidebar: oklch(0.218 0.041 132);
+    --sidebar-foreground: oklch(0.953 0.084 118.7);
+    --sidebar-primary: oklch(0.92 0.156 115.7);
+    --sidebar-primary-foreground: oklch(0.187 0.054 134);
+    --sidebar-accent: oklch(0.34 0.07 130 / 0.7);
+    --sidebar-accent-foreground: oklch(0.953 0.084 118.7);
+    --sidebar-border: oklch(0.953 0.084 118.7 / 0.16);
+    --sidebar-ring: oklch(0.92 0.156 115.7 / 0.6);
+
+    --glass-tint: oklch(0.95 0.1 118);
+    --glass-base: oklch(0.15 0.05 134 / 0.38);
+    --glass-edge: oklch(0.92 0.156 115.7 / 0.2);
+    --glass-hi: oklch(1 0 0 / 0.14);
+    --glass-shadow: oklch(0.05 0.03 134 / 0.7);
+    --offset: oklch(0.573 0.145 125.4);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+    }
+  body {
+    @apply bg-background text-foreground;
+    }
+  button:not(:disabled), [role="button"]:not(:disabled) {
+    cursor: pointer;
+    }
+  /* A visible ring for keyboard users on every plain link, button and tab. shadcn controls draw their own. */
+  :where(a, button, summary, [role="tab"], [tabindex]):focus-visible {
+    outline: 2px solid var(--foreground);
+    outline-offset: 3px;
+    }
+  /* Devanagari falls back to Anek Devanagari instead of whatever the system has. */
+  html {
+    font-family: var(--font-sans), var(--font-deva-src), sans-serif;
+    }
+  html {
+    @apply font-sans;
+    }
+  ::selection {
+    background: var(--lime);
+    color: var(--forest);
+    }
+}
+
+/* Archivo is a variable font with a width axis: used wide and heavy for display type. */
+@utility display {
+  font-weight: 800;
+  font-stretch: 112%;
+  font-variation-settings: "wdth" 112;
+  letter-spacing: -0.035em;
+  line-height: 0.95;
+}
+
+/* Small Archivo caps for labels: the default voice of the interface. */
+@utility label-caps {
+  font-size: 0.6875rem;
+  font-weight: 650;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+}
+
+/* Mono is kept for a few places only: numerals, counters and the ticker. */
+@utility mono-caps {
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: 0.6875rem;
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+/* Outlined numerals and wordmarks. */
+@utility stroke-text {
+  color: transparent;
+  -webkit-text-stroke: 1.5px var(--brand);
+}
+
+/* Frosted glass: a translucent tint over a darker (or lighter) base, a lit top edge, a soft drop. */
+.glass {
+  background:
+    linear-gradient(160deg, color-mix(in oklch, var(--glass-tint) 13%, transparent), color-mix(in oklch, var(--glass-tint) 3%, transparent)),
+    var(--glass-base);
+  border: 1px solid var(--glass-edge);
+  backdrop-filter: blur(24px) saturate(1.7);
+  -webkit-backdrop-filter: blur(24px) saturate(1.7);
+  box-shadow:
+    inset 0 1px 0 var(--glass-hi),
+    0 28px 60px -30px var(--glass-shadow);
+}
+
+/* A workspace panel: glass with a lime rule across the top. */
+.panel {
+  background:
+    linear-gradient(160deg, color-mix(in oklch, var(--glass-tint) 13%, transparent), color-mix(in oklch, var(--glass-tint) 3%, transparent)),
+    var(--glass-base);
+  border: 1px solid var(--glass-edge);
+  backdrop-filter: blur(24px) saturate(1.7);
+  -webkit-backdrop-filter: blur(24px) saturate(1.7);
+  box-shadow:
+    inset 0 2px 0 0 var(--brand),
+    0 28px 60px -30px var(--glass-shadow);
+}
+
+/*
+ * The lime surface from the reference. Everything inside re-reads the tokens, so shadcn
+ * inputs, tabs and buttons turn forest-on-lime without per-component overrides.
+ */
+.on-lime,
+.surface-lime,
+.block-lime {
+  --background: oklch(0.975 0.08 118 / 0.92);
+  --foreground: oklch(0.187 0.054 134);
+  --card-foreground: oklch(0.187 0.054 134);
+  --primary: oklch(0.187 0.054 134);
+  --primary-foreground: oklch(0.92 0.156 115.7);
+  --muted: oklch(0.187 0.054 134 / 0.1);
+  --muted-foreground: oklch(0.34 0.08 131);
+  --accent: oklch(0.187 0.054 134 / 0.14);
+  --accent-foreground: oklch(0.187 0.054 134);
+  --border: oklch(0.187 0.054 134 / 0.2);
+  --input: oklch(0.187 0.054 134 / 0.3);
+  --ring: oklch(0.187 0.054 134 / 0.55);
+  --brand: oklch(0.187 0.054 134);
+  --brand-foreground: oklch(0.92 0.156 115.7);
+  color: var(--foreground);
+}
+
+.surface-lime {
+  background: linear-gradient(150deg, oklch(0.94 0.15 116), oklch(0.875 0.18 118) 70%, oklch(0.83 0.17 120));
+  border: 1px solid var(--forest);
+  box-shadow: 7px 7px 0 0 var(--offset);
+}
+
+.block-lime {
+  background: var(--lime);
+}
+
+@keyframes shimmer {
+  to { background-position: -200% 0; }
+}
+
+.shimmer {
+  background: linear-gradient(90deg, transparent, color-mix(in oklch, var(--foreground) 12%, transparent), transparent);
+  background-size: 200% 100%;
+  animation: shimmer 1.6s linear infinite;
+}
+
+/* Thin scrollbars that match the glass. */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: color-mix(in oklch, var(--foreground) 24%, transparent) transparent;
+}
+
+/* Landing entrance: hidden until anime.js reveals it (or reduced motion shows it). */
+.reveal {
+  opacity: 0;
+}
+
+.hero-line {
+  transform: translateY(110%);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-line {
+    transform: none;
+  }
+  *, ::before, ::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

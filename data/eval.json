@@ -1,0 +1,1570 @@
+{
+  "generatedAt": "2026-10-17T20:30:27.350Z",
+  "form": "Product Engineer, Aurora Labs",
+  "totalFacts": 8,
+  "facts": [
+    {
+      "id": 1,
+      "topic": "built",
+      "text": "Built an Android stock-tracking app for his family's pharmacy: scan the barcode on a medicine strip and the stock updates."
+    },
+    {
+      "id": 2,
+      "topic": "built",
+      "text": "Wrote all of it himself: the Kotlin app and the Firebase backend. Nobody else coded."
+    },
+    {
+      "id": 3,
+      "topic": "built",
+      "text": "Three pharmacy staff use it every day."
+    },
+    {
+      "id": 4,
+      "topic": "built",
+      "text": "Monthly write-offs of expired medicines fell from about 12,000 rupees to about 2,000."
+    },
+    {
+      "id": 5,
+      "topic": "achievement",
+      "text": "Won second place out of 140 teams at a state-level hackathon in Pune in 2025 with that app."
+    },
+    {
+      "id": 6,
+      "topic": "led",
+      "text": "Led four students building a timetable app, with weekly sprints and a demo every Friday."
+    },
+    {
+      "id": 7,
+      "topic": "led",
+      "text": "They shipped in 10 weeks and the college now uses it for 600 students."
+    },
+    {
+      "id": 8,
+      "topic": "role",
+      "text": "Wants to work on payments for small merchants because he watched his father reconcile UPI payments by hand every night."
+    }
+  ],
+  "models": {
+    "llm": "openai/gpt-oss-120b",
+    "agentLlm": "gpt-4.1-mini"
+  },
+  "completedRuns": 5,
+  "failedRuns": 0,
+  "summary": {
+    "baseline": {
+      "recall": 0,
+      "recallMin": 0,
+      "recallMax": 0,
+      "quality": 2,
+      "invented": 0,
+      "turns": 6,
+      "finished": 5
+    },
+    "bolbharo": {
+      "recall": 5.2,
+      "recallMin": 4,
+      "recallMax": 6,
+      "quality": 4.5,
+      "invented": 0,
+      "turns": 13.6,
+      "finished": 5
+    }
+  },
+  "perRun": [
+    {
+      "run": 1,
+      "baseline": {
+        "recalled": [],
+        "recall": 0,
+        "quality": 2,
+        "invented": 0,
+        "elicited": [],
+        "turns": 6,
+        "finished": true,
+        "answers": [
+          {
+            "id": "F1",
+            "label": "Full name",
+            "kind": "text",
+            "answer": "Rohan Kulkarni",
+            "quality": 4,
+            "invented": []
+          },
+          {
+            "id": "F2",
+            "label": "Where are you based?",
+            "kind": "text",
+            "answer": "I'm based in Nashik.",
+            "quality": 4,
+            "invented": []
+          },
+          {
+            "id": "F3",
+            "label": "Tell us about something you've built",
+            "kind": "long_text",
+            "answer": "I built a small app for a family business.",
+            "quality": 2,
+            "invented": []
+          },
+          {
+            "id": "F4",
+            "label": "What is your proudest achievement so far?",
+            "kind": "long_text",
+            "answer": "I’m proud of a project that helped my family.",
+            "quality": 2,
+            "invented": []
+          },
+          {
+            "id": "F5",
+            "label": "Describe a time you led others",
+            "kind": "long_text",
+            "answer": "I helped a small team finish a project together.",
+            "quality": 2,
+            "invented": []
+          },
+          {
+            "id": "F6",
+            "label": "Why this role?",
+            "kind": "long_text",
+            "answer": "I like working on real-world problems that help small businesses.",
+            "quality": 2,
+            "invented": []
+          }
+        ],
+        "transcript": [
+          {
+            "role": "interviewer",
+            "text": "Full name"
+          },
+          {
+            "role": "applicant",
+            "text": "Rohan Kulkarni"
+          },
+          {
+            "role": "interviewer",
+            "text": "Where are you based?"
+          },
+          {
+            "role": "applicant",
+            "text": "I'm based in Nashik."
+          },
+          {
+            "role": "interviewer",
+            "text": "Tell us about something you've built"
+          },
+          {
+            "role": "applicant",
+            "text": "I built a small app for a family business."
+          },
+          {
+            "role": "interviewer",
+            "text": "What is your proudest achievement so far?"
+          },
+          {
+            "role": "applicant",
+            "text": "I’m proud of a project that helped my family."
+          },
+          {
+            "role": "interviewer",
+            "text": "Describe a time you led others"
+          },
+          {
+            "role": "applicant",
+            "text": "I helped a small team finish a project together."
+          },
+          {
+            "role": "interviewer",
+            "text": "Why this role?"
+          },
+          {
+            "role": "applicant",
+            "text": "I like working on real‑world problems that help small businesses."
+          }
+        ]
+      },
+      "bolbharo": {
+        "recalled": [
+          1,
+          3,
+          4,
+          6,
+          7
+        ],
+        "recall": 5,
+        "quality": 4.5,
+        "invented": 0,
+        "elicited": [
+          1,
+          3,
+          4,
+          6,
+          7
+        ],
+        "turns": 13,
+        "finished": true,
+        "answers": [
+          {
+            "id": "F1",
+            "label": "Full name",
+            "kind": "text",
+            "answer": "Rohan Kulkarni",
+            "quality": 5,
+            "invented": []
+          },
+          {
+            "id": "F2",
+            "label": "Where are you based?",
+            "kind": "text",
+            "answer": "I am based in Nashik.",
+            "quality": 5,
+            "invented": []
+          },
+          {
+            "id": "F3",
+            "label": "Tell us about something you've built",
+            "kind": "long_text",
+            "answer": "I built an app that scans medicine barcodes to update pharmacy stock. I handled most of the development. Three pharmacy staff use it daily, and since its deployment the monthly write-offs have fallen from about 12,000 ₹ to roughly 2,000 ₹.",
+            "quality": 5,
+            "invented": []
+          },
+          {
+            "id": "F4",
+            "label": "What is your proudest achievement so far?",
+            "kind": "long_text",
+            "answer": "My proudest achievement is creating something useful for my family. It made everyday tasks easier for us at home, and seeing that impact on my loved ones gives me a real sense of accomplishment.",
+            "quality": 4,
+            "invented": []
+          },
+          {
+            "id": "F5",
+            "label": "Describe a time you led others",
+            "kind": "long_text",
+            "answer": "I led four students to build a timetable app. I coordinated the team, set weekly sprints and demos, and kept everyone on track. After ten weeks we shipped the app, and the college now uses it for about six hundred students.",
+            "quality": 5,
+            "invented": []
+          },
+          {
+            "id": "F6",
+            "label": "Why this role?",
+            "kind": "long_text",
+            "answer": "I’m motivated by building things that help small businesses, and I work well creating useful tools as part of small teams.",
+            "quality": 4,
+            "invented": []
+          }
+        ],
+        "transcript": [
+          {
+            "role": "interviewer",
+            "text": "Hi! I'll help you fill in Product Engineer, Aurora Labs. Nothing gets submitted without your OK. What's your full name?"
+          },
+          {
+            "role": "applicant",
+            "text": "Rohan Kulkarni"
+          },
+          {
+            "role": "interviewer",
+            "text": "Thanks, Rohan. Which city are you in?"
+          },
+          {
+            "role": "applicant",
+            "text": "I'm in Nashik."
+          },
+          {
+            "role": "interviewer",
+            "text": "Great, Rohan. Tell me about something you've built. What did you build, and what part did you personally own?"
+          },
+          {
+            "role": "applicant",
+            "text": "I built a small app and handled most of it."
+          },
+          {
+            "role": "interviewer",
+            "text": "Thanks. What does the app actually do, and who used it?"
+          },
+          {
+            "role": "applicant",
+            "text": "It scans medicine barcodes to update pharmacy stock; three staff use it daily."
+          },
+          {
+            "role": "interviewer",
+            "text": "Got it. What changed because of the app? Any numbers to share?"
+          },
+          {
+            "role": "applicant",
+            "text": "Write‑offs dropped from about 12,000 ₹ to roughly 2,000 ₹ monthly."
+          },
+          {
+            "role": "interviewer",
+            "text": "Thanks for sharing that. What is your proudest achievement so far? What are you proudest of?"
+          },
+          {
+            "role": "applicant",
+            "text": "I'm proud of creating something useful for my family."
+          },
+          {
+            "role": "interviewer",
+            "text": "What did creating that change for you or your family?"
+          },
+          {
+            "role": "applicant",
+            "text": "It made things easier for us at home."
+          },
+          {
+            "role": "interviewer",
+            "text": "Can you describe a time you led others? Who were you leading, and on what?"
+          },
+          {
+            "role": "applicant",
+            "text": "I led four students building a timetable app."
+          },
+          {
+            "role": "interviewer",
+            "text": "What did you do as the lead, and how did it turn out?"
+          },
+          {
+            "role": "applicant",
+            "text": "I coordinated the team, set weekly sprints and demos, and we shipped the app in ten weeks; the college now uses it for about six hundred students."
+          },
+          {
+            "role": "interviewer",
+            "text": "Why does this role at Aurora Labs interest you? What draws you to it?"
+          },
+          {
+            "role": "applicant",
+            "text": "I like building things that help small businesses."
+          },
+          {
+            "role": "interviewer",
+            "text": "What makes you a good fit for this role?"
+          },
+          {
+            "role": "applicant",
+            "text": "I work well building useful tools with small teams."
+          },
+          {
+            "role": "interviewer",
+            "text": "You built an app scanning medicine barcodes used daily by three staff, cutting write-offs from 12,000 to 2,000 rupees monthly. You're proud of creating useful family tools that made home life easier. You led four students to build a timetable app used by 600 students, shipping it in ten weeks. You like building things that help small businesses and work well with small teams. Is that right?"
+          },
+          {
+            "role": "applicant",
+            "text": "Yes."
+          },
+          {
+            "role": "interviewer",
+            "text": "One last thing on your app: is there a specific number we can include about its usage or impact? If not, we can skip it."
+          },
+          {
+            "role": "applicant",
+            "text": "I don’t have another specific number to share."
+          },
+          {
+            "role": "interviewer",
+            "text": "Thanks, Rohan. Please review the draft answers on your screen. If you want to change anything, just let me know."
+          }
+        ]
+      }
+    },
+    {
+      "run": 2,
+      "baseline": {
+        "recalled": [],
+        "recall": 0,
+        "quality": 2,
+        "invented": 0,
+        "elicited": [],
+        "turns": 6,
+        "finished": true,
+        "answers": [
+          {
+            "id": "F1",
+            "label": "Full name",
+            "kind": "text",
+            "answer": "Rohan Kulkarni",
+            "quality": 5,
+            "invented": []
+          },
+          {
+            "id": "F2",
+            "label": "Where are you based?",
+            "kind": "text",
+            "answer": "I'm based in Nashik.",
+            "quality": 5,
+            "invented": []
+          },
+          {
+            "id": "F3",
+            "label": "Tell us about something you've built",
+            "kind": "long_text",
+            "answer": "I built a small pharmacy inventory app.",
+            "quality": 2,
+            "invented": []
+          },
+          {
+            "id": "F4",
+            "label": "What is your proudest achievement so far?",
+            "kind": "long_text",
+            "answer": "I’m proud of a project that helped my family’s business.",
+            "quality": 2,
+            "invented": []
+          },
+          {
+            "id": "F5",
+            "label": "Describe a time you led others",
+            "kind": "long_text",
+            "answer": "I guided a small team on a project once.",
+            "quality": 2,
+            "invented": []
+          },
+          {
+            "id": "F6",
+            "label": "Why this role?",
+            "kind": "long_text",
+            "answer": "I think it matches my interests and skills well.",
+            "quality": 2,
+            "invented": []
+          }
+        ],
+        "transcript": [
+          {
+            "role": "interviewer",
+            "text": "Full name"
+          },
+          {
+            "role": "applicant",
+            "text": "Rohan Kulkarni"
+          },
+          {
+            "role": "interviewer",
+            "text": "Where are you based?"
+          },
+          {
+            "role": "applicant",
+            "text": "I'm based in Nashik."
+          },
+          {
+            "role": "interviewer",
+            "text": "Tell us about something you've built"
+          },
+          {
+            "role": "applicant",
+            "text": "I built a small pharmacy inventory app."
+          },
+          {
+            "role": "interviewer",
+            "text": "What is your proudest achievement so far?"
+          },
+          {
+            "role": "applicant",
+            "text": "I’m proud of a project that helped my family’s business."
+          },
+          {
+            "role": "interviewer",
+            "text": "Describe a time you led others"
+          },
+          {
+            "role": "applicant",
+            "text": "I guided a small team on a project once."
+          },
+          {
+            "role": "interviewer",
+            "text": "Why this role?"
+          },
+          {
+            "role": "applicant",
+            "text": "I think it matches my interests and skills well."
+          }
+        ]
+      },
+      "bolbharo": {
+        "recalled": [
+          1,
+          2,
+          3,
+          4,
+          6,
+          7
+        ],
+        "recall": 6,
+        "quality": 4.3,
+        "invented": 0,
+        "elicited": [
+          1,
+          2,
+          3,
+          4,
+          6,
+          7
+        ],
+        "turns": 13,
+        "finished": true,
+        "answers": [
+          {
+            "id": "F1",
+            "label": "Full name",
+            "kind": "text",
+            "answer": "Rohan Kulkarni",
+            "quality": 5,
+            "invented": []
+          },
+          {
+            "id": "F2",
+            "label": "Where are you based?",
+            "kind": "text",
+            "answer": "I am based in Nashik.",
+            "quality": 5,
+            "invented": []
+          },
+          {
+            "id": "F3",
+            "label": "Tell us about something you've built",
+            "kind": "long_text",
+            "answer": "I built an Android app that scans medicine barcodes to keep the pharmacy’s stock up-to-date. I wrote the Kotlin code and set up the Firebase backend myself. Three pharmacy staff now use it every day, and the monthly write-offs have fallen from about 12,000 rupees to roughly 2,000.",
+            "quality": 5,
+            "invented": []
+          },
+          {
+            "id": "F4",
+            "label": "What is your proudest achievement so far?",
+            "kind": "long_text",
+            "answer": "My proudest achievement is creating something useful for my family business. It gave us more confidence and made our daily work smoother.",
+            "quality": 4,
+            "invented": []
+          },
+          {
+            "id": "F5",
+            "label": "Describe a time you led others",
+            "kind": "long_text",
+            "answer": "I led four students to build a timetable app. I set up weekly sprints and ran a demo every Friday. After ten weeks we shipped the app, and it now serves about six hundred students.",
+            "quality": 5,
+            "invented": []
+          },
+          {
+            "id": "F6",
+            "label": "Why this role?",
+            "kind": "long_text",
+            "answer": "I’m drawn to this role because I enjoy building useful things for everyday people. Creating practical solutions that help everyday users is what motivates me, and I see this position as a chance to apply that focus directly.",
+            "quality": 3,
+            "invented": []
+          }
+        ],
+        "transcript": [
+          {
+            "role": "interviewer",
+            "text": "Hi! I'll help you fill in Product Engineer, Aurora Labs. Nothing gets submitted without your OK. What's your full name?"
+          },
+          {
+            "role": "applicant",
+            "text": "Rohan Kulkarni"
+          },
+          {
+            "role": "interviewer",
+            "text": "Thanks, Rohan. Which city are you in?"
+          },
+          {
+            "role": "applicant",
+            "text": "I'm in Nashik."
+          },
+          {
+            "role": "interviewer",
+            "text": "Great, Nashik noted. Tell me about something you've built. What did you build, and which part did you personally own?"
+          },
+          {
+            "role": "applicant",
+            "text": "I built a small app and handled most of it myself."
+          },
+          {
+            "role": "interviewer",
+            "text": "Thanks. What exactly does the app do, and who used it?"
+          },
+          {
+            "role": "applicant",
+            "text": "It tracks pharmacy stock by scanning medicine barcodes, and three staff members use it daily."
+          },
+          {
+            "role": "interviewer",
+            "text": "Got it. What changed because of the app? Any numbers to share?"
+          },
+          {
+            "role": "applicant",
+            "text": "Monthly write‑offs dropped from about 12,000 rupees to around 2,000."
+          },
+          {
+            "role": "interviewer",
+            "text": "Thanks for that. What is your proudest achievement so far? What are you proudest of?"
+          },
+          {
+            "role": "applicant",
+            "text": "I'm proud of creating something useful for my family business."
+          },
+          {
+            "role": "interviewer",
+            "text": "What did that change for you or others?"
+          },
+          {
+            "role": "applicant",
+            "text": "It gave us more confidence and smoother daily work."
+          },
+          {
+            "role": "interviewer",
+            "text": "Nice. Describe a time you led others. Who were you leading, and on what?"
+          },
+          {
+            "role": "applicant",
+            "text": "I led four students building a timetable app."
+          },
+          {
+            "role": "interviewer",
+            "text": "What did you do as the lead?"
+          },
+          {
+            "role": "applicant",
+            "text": "I set up weekly sprints and ran a demo every Friday."
+          },
+          {
+            "role": "interviewer",
+            "text": "How did it turn out?"
+          },
+          {
+            "role": "applicant",
+            "text": "It shipped in ten weeks and now serves about six hundred students."
+          },
+          {
+            "role": "interviewer",
+            "text": "Why does this role at Aurora Labs appeal to you? What draws you to it?"
+          },
+          {
+            "role": "applicant",
+            "text": "I like building useful things for everyday people."
+          },
+          {
+            "role": "interviewer",
+            "text": "What makes you a fit for this role?"
+          },
+          {
+            "role": "applicant",
+            "text": "I enjoy creating practical solutions that help everyday users."
+          },
+          {
+            "role": "interviewer",
+            "text": "You mentioned building a small app for pharmacy stock. Can you tell me exactly what you built? Also, which part did you personally own? And just to confirm, who used it daily?"
+          },
+          {
+            "role": "applicant",
+            "text": "I built an Android app that scans medicine barcodes to update pharmacy stock, wrote the Kotlin code and Firebase backend myself, and three pharmacy staff use it daily."
+          },
+          {
+            "role": "interviewer",
+            "text": "All done, Rohan! Please review the draft answers on your screen. Let me know if you want to change anything."
+          }
+        ]
+      }
+    },
+    {
+      "run": 3,
+      "baseline": {
+        "recalled": [],
+        "recall": 0,
+        "quality": 2,
+        "invented": 0,
+        "elicited": [],
+        "turns": 6,
+        "finished": true,
+        "answers": [
+          {
+            "id": "F1",
+            "label": "Full name",
+            "kind": "text",
+            "answer": "Rohan Kulkarni",
+            "quality": 5,
+            "invented": []
+          },
+          {
+            "id": "F2",
+            "label": "Where are you based?",
+            "kind": "text",
+            "answer": "I'm based in Nashik.",
+            "quality": 5,
+            "invented": []
+          },
+          {
+            "id": "F3",
+            "label": "Tell us about something you've built",
+            "kind": "long_text",
+            "answer": "I built a small app for a family business.",
+            "quality": 2,
+            "invented": []
+          },
+          {
+            "id": "F4",
+            "label": "What is your proudest achievement so far?",
+            "kind": "long_text",
+            "answer": "I’m proud of a project that helped my family’s business.",
+            "quality": 2,
+            "invented": []
+          },
+          {
+            "id": "F5",
+            "label": "Describe a time you led others",
+            "kind": "long_text",
+            "answer": "I led a small team on a simple project once.",
+            "quality": 2,
+            "invented": []
+          },
+          {
+            "id": "F6",
+            "label": "Why this role?",
+            "kind": "long_text",
+            "answer": "I think this role fits my interests and background well.",
+            "quality": 2,
+            "invented": []
+          }
+        ],
+        "transcript": [
+          {
+            "role": "interviewer",
+            "text": "Full name"
+          },
+          {
+            "role": "applicant",
+            "text": "Rohan Kulkarni"
+          },
+          {
+            "role": "interviewer",
+            "text": "Where are you based?"
+          },
+          {
+            "role": "applicant",
+            "text": "I'm based in Nashik."
+          },
+          {
+            "role": "interviewer",
+            "text": "Tell us about something you've built"
+          },
+          {
+            "role": "applicant",
+            "text": "I built a small app for a family business."
+          },
+          {
+            "role": "interviewer",
+            "text": "What is your proudest achievement so far?"
+          },
+          {
+            "role": "applicant",
+            "text": "I’m proud of a project that helped my family’s business."
+          },
+          {
+            "role": "interviewer",
+            "text": "Describe a time you led others"
+          },
+          {
+            "role": "applicant",
+            "text": "I led a small team on a simple project once."
+          },
+          {
+            "role": "interviewer",
+            "text": "Why this role?"
+          },
+          {
+            "role": "applicant",
+            "text": "I think it fits my interests and background well."
+          }
+        ]
+      },
+      "bolbharo": {
+        "recalled": [
+          2,
+          3,
+          4,
+          7
+        ],
+        "recall": 4,
+        "quality": 4,
+        "invented": 0,
+        "elicited": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7
+        ],
+        "turns": 16,
+        "finished": true,
+        "answers": [
+          {
+            "id": "F1",
+            "label": "Full name",
+            "kind": "text",
+            "answer": "Rohan Kulkarni",
+            "quality": 5,
+            "invented": []
+          },
+          {
+            "id": "F2",
+            "label": "Where are you based?",
+            "kind": "text",
+            "answer": "I am based in Nashik.",
+            "quality": 5,
+            "invented": []
+          },
+          {
+            "id": "F3",
+            "label": "Tell us about something you've built",
+            "kind": "long_text",
+            "answer": "I built a small app for a local pharmacy to help them manage inventory. I wrote the entire application and its backend myself. Three pharmacy staff now use it daily, and the monthly write-offs for expired medicine have fallen from 12,000 ₹ to 2,000 ₹.",
+            "quality": 5,
+            "invented": []
+          },
+          {
+            "id": "F4",
+            "label": "What is your proudest achievement so far?",
+            "kind": "long_text",
+            "answer": "My proudest achievement so far is placing second in a state hackathon with the app I built.",
+            "quality": 4,
+            "invented": []
+          },
+          {
+            "id": "F5",
+            "label": "Describe a time you led others",
+            "kind": "long_text",
+            "answer": "I led a small student team building a timetable app. I organized weekly sprints and Friday demos to keep us on track. After ten weeks we shipped the app, and it was used by about six hundred students.",
+            "quality": 4,
+            "invented": []
+          },
+          {
+            "id": "F6",
+            "label": "Why this role?",
+            "kind": "long_text",
+            "answer": "I’m motivated by helping small businesses grow with simple technology, and I believe my relevant experience and strong drive make me a good fit for this role.",
+            "quality": 3,
+            "invented": []
+          }
+        ],
+        "transcript": [
+          {
+            "role": "interviewer",
+            "text": "Hi! I'll help you fill in Product Engineer, Aurora Labs. Nothing gets submitted without your OK. What's your full name?"
+          },
+          {
+            "role": "applicant",
+            "text": "Rohan Kulkarni"
+          },
+          {
+            "role": "interviewer",
+            "text": "Thanks, Rohan. Which city are you in?"
+          },
+          {
+            "role": "applicant",
+            "text": "I'm in Nashik."
+          },
+          {
+            "role": "interviewer",
+            "text": "Great, Nashik noted. Tell me about something you've built. What was it?"
+          },
+          {
+            "role": "applicant",
+            "text": "I created a small app for a local business."
+          },
+          {
+            "role": "interviewer",
+            "text": "Okay, what exactly does the app do?"
+          },
+          {
+            "role": "applicant",
+            "text": "It helps a local shop manage things better."
+          },
+          {
+            "role": "interviewer",
+            "text": "Which part did you personally own in building this app?"
+          },
+          {
+            "role": "applicant",
+            "text": "I wrote the whole thing myself, both the app and its backend."
+          },
+          {
+            "role": "interviewer",
+            "text": "Who used the app? Was it just the local shop or others too?"
+          },
+          {
+            "role": "applicant",
+            "text": "Three pharmacy staff use it daily."
+          },
+          {
+            "role": "interviewer",
+            "text": "What changed because of the app? Any improvements or benefits?"
+          },
+          {
+            "role": "applicant",
+            "text": "Monthly expired medicine write‑offs dropped from ~12,000 ₹ to ~2,000 ₹."
+          },
+          {
+            "role": "interviewer",
+            "text": "Thanks for sharing that. What is your proudest achievement so far?"
+          },
+          {
+            "role": "applicant",
+            "text": "I placed second in a state hackathon with my app."
+          },
+          {
+            "role": "interviewer",
+            "text": "What did placing second in the hackathon change for you or others?"
+          },
+          {
+            "role": "applicant",
+            "text": "I don't remember any specific change from that."
+          },
+          {
+            "role": "interviewer",
+            "text": "Got it. Can you describe a time you led others? Who were you leading and on what?"
+          },
+          {
+            "role": "applicant",
+            "text": "I led a small student team building a timetable app."
+          },
+          {
+            "role": "interviewer",
+            "text": "What did you do as the lead in that project?"
+          },
+          {
+            "role": "applicant",
+            "text": "I organized weekly sprints and Friday demos for the team."
+          },
+          {
+            "role": "interviewer",
+            "text": "How did it turn out? What was the result of your leadership?"
+          },
+          {
+            "role": "applicant",
+            "text": "We shipped it in ten weeks and now the college uses it for around six hundred students."
+          },
+          {
+            "role": "interviewer",
+            "text": "Why does this role at Aurora Labs interest you? What draws you to it?"
+          },
+          {
+            "role": "applicant",
+            "text": "I like helping small businesses grow with simple tech."
+          },
+          {
+            "role": "interviewer",
+            "text": "What makes you a good fit for this role?"
+          },
+          {
+            "role": "applicant",
+            "text": "I have relevant experience and a strong drive."
+          },
+          {
+            "role": "interviewer",
+            "text": "You built an app for a local business used by three pharmacy staff, cutting expired medicine losses from 12,000 ₹ to 2,000 ₹ monthly. You placed second in a state hackathon with your app. You led a student team to build a timetable app used by 600 students. You want this role because you like helping small businesses with tech and have relevant experience and drive. Is that right?"
+          },
+          {
+            "role": "applicant",
+            "text": "Yes, that’s correct."
+          },
+          {
+            "role": "interviewer",
+            "text": "One more quick thing: Is there a number we can include about your app for the local business? Like users, downloads, or anything else?"
+          },
+          {
+            "role": "applicant",
+            "text": "Three staff members use it daily."
+          },
+          {
+            "role": "interviewer",
+            "text": "Thanks, Rohan! Please review the draft answers on your screen. If you want to change anything, just tell me."
+          }
+        ]
+      }
+    },
+    {
+      "run": 4,
+      "baseline": {
+        "recalled": [],
+        "recall": 0,
+        "quality": 2,
+        "invented": 0,
+        "elicited": [],
+        "turns": 6,
+        "finished": true,
+        "answers": [
+          {
+            "id": "F1",
+            "label": "Full name",
+            "kind": "text",
+            "answer": "Rohan Kulkarni",
+            "quality": 5,
+            "invented": []
+          },
+          {
+            "id": "F2",
+            "label": "Where are you based?",
+            "kind": "text",
+            "answer": "I'm based in Nashik.",
+            "quality": 5,
+            "invented": []
+          },
+          {
+            "id": "F3",
+            "label": "Tell us about something you've built",
+            "kind": "long_text",
+            "answer": "I built a small pharmacy stock app.",
+            "quality": 2,
+            "invented": []
+          },
+          {
+            "id": "F4",
+            "label": "What is your proudest achievement so far?",
+            "kind": "long_text",
+            "answer": "I’m proud of a project that helped my family’s business.",
+            "quality": 2,
+            "invented": []
+          },
+          {
+            "id": "F5",
+            "label": "Describe a time you led others",
+            "kind": "long_text",
+            "answer": "I guided a small team on a project once.",
+            "quality": 2,
+            "invented": []
+          },
+          {
+            "id": "F6",
+            "label": "Why this role?",
+            "kind": "long_text",
+            "answer": "I think it fits my interests and experience well.",
+            "quality": 2,
+            "invented": []
+          }
+        ],
+        "transcript": [
+          {
+            "role": "interviewer",
+            "text": "Full name"
+          },
+          {
+            "role": "applicant",
+            "text": "Rohan Kulkarni"
+          },
+          {
+            "role": "interviewer",
+            "text": "Where are you based?"
+          },
+          {
+            "role": "applicant",
+            "text": "I'm based in Nashik."
+          },
+          {
+            "role": "interviewer",
+            "text": "Tell us about something you've built"
+          },
+          {
+            "role": "applicant",
+            "text": "I built a small pharmacy stock app."
+          },
+          {
+            "role": "interviewer",
+            "text": "What is your proudest achievement so far?"
+          },
+          {
+            "role": "applicant",
+            "text": "I’m proud of a project that helped my family’s business."
+          },
+          {
+            "role": "interviewer",
+            "text": "Describe a time you led others"
+          },
+          {
+            "role": "applicant",
+            "text": "I guided a small team on a project once."
+          },
+          {
+            "role": "interviewer",
+            "text": "Why this role?"
+          },
+          {
+            "role": "applicant",
+            "text": "I think it fits my interests and experience well."
+          }
+        ]
+      },
+      "bolbharo": {
+        "recalled": [
+          1,
+          3,
+          4,
+          6,
+          7
+        ],
+        "recall": 5,
+        "quality": 4.5,
+        "invented": 0,
+        "elicited": [
+          1,
+          3,
+          4,
+          6,
+          7
+        ],
+        "turns": 13,
+        "finished": true,
+        "answers": [
+          {
+            "id": "F1",
+            "label": "Full name",
+            "kind": "text",
+            "answer": "Rohan Kulkarni",
+            "quality": 5,
+            "invented": []
+          },
+          {
+            "id": "F2",
+            "label": "Where are you based?",
+            "kind": "text",
+            "answer": "I am based in Nashik.",
+            "quality": 5,
+            "invented": []
+          },
+          {
+            "id": "F3",
+            "label": "Tell us about something you've built",
+            "kind": "long_text",
+            "answer": "I built an app that tracks pharmacy stock by scanning medicine barcodes. I handled most of the development. Three staff members use it daily, and since its deployment stock write-offs have fallen from about 12,000 ₹ per month to roughly 2,000 ₹.",
+            "quality": 5,
+            "invented": []
+          },
+          {
+            "id": "F4",
+            "label": "What is your proudest achievement so far?",
+            "kind": "long_text",
+            "answer": "My proudest achievement is a project I built for my family’s business that made operations run smoother. By automating key processes, I reduced the monthly write-offs from about 12,000 ₹ to roughly 2,000 ₹, delivering a clear, measurable improvement.",
+            "quality": 5,
+            "invented": []
+          },
+          {
+            "id": "F5",
+            "label": "Describe a time you led others",
+            "kind": "long_text",
+            "answer": "I led four students to build a timetable app. I coordinated the team, ran weekly sprints and demos, and kept everyone aligned. After 10 weeks we shipped the product, and the college now uses it for 600 students.",
+            "quality": 5,
+            "invented": []
+          },
+          {
+            "id": "F6",
+            "label": "Why this role?",
+            "kind": "long_text",
+            "answer": "I enjoy building useful tools that everyday people can rely on, and my background includes experience creating practical tools that solve real problems. This role aligns with both my motivation to make helpful products and my proven ability to deliver them.",
+            "quality": 3,
+            "invented": []
+          }
+        ],
+        "transcript": [
+          {
+            "role": "interviewer",
+            "text": "Hi! I'll help you fill in Product Engineer, Aurora Labs. Nothing gets submitted without your OK. What's your full name?"
+          },
+          {
+            "role": "applicant",
+            "text": "Rohan Kulkarni"
+          },
+          {
+            "role": "interviewer",
+            "text": "Thanks, Rohan. Which city are you in?"
+          },
+          {
+            "role": "applicant",
+            "text": "I'm in Nashik."
+          },
+          {
+            "role": "interviewer",
+            "text": "Great, Nashik noted. Tell me about something you've built. What did you build, and which part did you personally own?"
+          },
+          {
+            "role": "applicant",
+            "text": "I built a small app and handled most of it."
+          },
+          {
+            "role": "interviewer",
+            "text": "Thanks. What exactly does the app do, and who used it?"
+          },
+          {
+            "role": "applicant",
+            "text": "It tracks pharmacy stock by scanning medicine barcodes, and three staff members use it daily."
+          },
+          {
+            "role": "interviewer",
+            "text": "Thanks for that. What changed because of the app? Any numbers to show its impact?"
+          },
+          {
+            "role": "applicant",
+            "text": "Stock write‑offs dropped from about 12,000 ₹ to around 2,000 ₹ monthly."
+          },
+          {
+            "role": "interviewer",
+            "text": "Nice impact! Now, what is your proudest achievement so far? What are you proudest of?"
+          },
+          {
+            "role": "applicant",
+            "text": "I'm proud of a project that helped my family’s business run smoother."
+          },
+          {
+            "role": "interviewer",
+            "text": "What did that project change for you or others?"
+          },
+          {
+            "role": "applicant",
+            "text": "It cut monthly write‑offs from about 12,000 ₹ down to roughly 2,000 ₹."
+          },
+          {
+            "role": "interviewer",
+            "text": "Thanks for sharing that. Can you describe a time you led others? Who were you leading, and on what?"
+          },
+          {
+            "role": "applicant",
+            "text": "I led four students building a timetable app."
+          },
+          {
+            "role": "interviewer",
+            "text": "What did you do as the lead, and how did it turn out?"
+          },
+          {
+            "role": "applicant",
+            "text": "I coordinated the four‑person team, ran weekly sprints and demos; we shipped in 10 weeks and the college now uses it for 600 students."
+          },
+          {
+            "role": "interviewer",
+            "text": "Great leadership example. Why does this role at Aurora Labs appeal to you? What draws you to it?"
+          },
+          {
+            "role": "applicant",
+            "text": "I like building useful tools for everyday people."
+          },
+          {
+            "role": "interviewer",
+            "text": "What makes you a fit for this role? Any skills or experience that match?"
+          },
+          {
+            "role": "applicant",
+            "text": "I have relevant experience building practical tools."
+          },
+          {
+            "role": "interviewer",
+            "text": "To recap: Your name is Rohan Kulkarni from Nashik. You built an app tracking pharmacy stock by scanning barcodes, used by three staff, cutting write-offs from 12,000 ₹ to 2,000 ₹ monthly. Your proudest achievement is a project that improved your family business similarly. You led four students to build a timetable app used by 600 students after 10 weeks. You’re drawn to this role because you like building useful tools and have relevant experience. Is that right?"
+          },
+          {
+            "role": "applicant",
+            "text": "Yes, that’s correct."
+          },
+          {
+            "role": "interviewer",
+            "text": "One quick thing: Is there a number we can include for the app you built, like downloads or active users?"
+          },
+          {
+            "role": "applicant",
+            "text": "Three staff use it daily."
+          },
+          {
+            "role": "interviewer",
+            "text": "Thanks, Rohan! Please review the draft answers on your screen. Let me know if you want to change anything."
+          }
+        ]
+      }
+    },
+    {
+      "run": 5,
+      "baseline": {
+        "recalled": [],
+        "recall": 0,
+        "quality": 2,
+        "invented": 0,
+        "elicited": [],
+        "turns": 6,
+        "finished": true,
+        "answers": [
+          {
+            "id": "F1",
+            "label": "Full name",
+            "kind": "text",
+            "answer": "Rohan Kulkarni",
+            "quality": 5,
+            "invented": []
+          },
+          {
+            "id": "F2",
+            "label": "Where are you based?",
+            "kind": "text",
+            "answer": "I'm based in Nashik.",
+            "quality": 5,
+            "invented": []
+          },
+          {
+            "id": "F3",
+            "label": "Tell us about something you've built",
+            "kind": "long_text",
+            "answer": "I built a small pharmacy inventory app.",
+            "quality": 2,
+            "invented": []
+          },
+          {
+            "id": "F4",
+            "label": "What is your proudest achievement so far?",
+            "kind": "long_text",
+            "answer": "I’m proud of a project I completed recently.",
+            "quality": 2,
+            "invented": []
+          },
+          {
+            "id": "F5",
+            "label": "Describe a time you led others",
+            "kind": "long_text",
+            "answer": "I helped a small team finish a project together.",
+            "quality": 2,
+            "invented": []
+          },
+          {
+            "id": "F6",
+            "label": "Why this role?",
+            "kind": "long_text",
+            "answer": "I think it matches my interests and skills well.",
+            "quality": 2,
+            "invented": []
+          }
+        ],
+        "transcript": [
+          {
+            "role": "interviewer",
+            "text": "Full name"
+          },
+          {
+            "role": "applicant",
+            "text": "Rohan Kulkarni"
+          },
+          {
+            "role": "interviewer",
+            "text": "Where are you based?"
+          },
+          {
+            "role": "applicant",
+            "text": "I'm based in Nashik."
+          },
+          {
+            "role": "interviewer",
+            "text": "Tell us about something you've built"
+          },
+          {
+            "role": "applicant",
+            "text": "I built a small pharmacy inventory app."
+          },
+          {
+            "role": "interviewer",
+            "text": "What is your proudest achievement so far?"
+          },
+          {
+            "role": "applicant",
+            "text": "I’m proud of a project I completed recently."
+          },
+          {
+            "role": "interviewer",
+            "text": "Describe a time you led others"
+          },
+          {
+            "role": "applicant",
+            "text": "I helped a small team finish a project together."
+          },
+          {
+            "role": "interviewer",
+            "text": "Why this role?"
+          },
+          {
+            "role": "applicant",
+            "text": "I think it matches my interests and skills well."
+          }
+        ]
+      },
+      "bolbharo": {
+        "recalled": [
+          1,
+          2,
+          3,
+          4,
+          6,
+          7
+        ],
+        "recall": 6,
+        "quality": 5,
+        "invented": 0,
+        "elicited": [
+          1,
+          2,
+          3,
+          4,
+          6,
+          7
+        ],
+        "turns": 13,
+        "finished": true,
+        "answers": [
+          {
+            "id": "F1",
+            "label": "Full name",
+            "kind": "text",
+            "answer": "Rohan Kulkarni",
+            "quality": 5,
+            "invented": []
+          },
+          {
+            "id": "F2",
+            "label": "Where are you based?",
+            "kind": "text",
+            "answer": "I am based in Nashik.",
+            "quality": 5,
+            "invented": []
+          },
+          {
+            "id": "F3",
+            "label": "Tell us about something you've built",
+            "kind": "long_text",
+            "answer": "I built an Android app in Kotlin that tracks pharmacy stock by scanning medicine barcodes, with a Firebase backend I also created. Three pharmacy staff use it daily, and since its deployment monthly write-offs have fallen from about 12,000 ₹ to roughly 2,000 ₹.",
+            "quality": 5,
+            "invented": []
+          },
+          {
+            "id": "F4",
+            "label": "What is your proudest achievement so far?",
+            "kind": "long_text",
+            "answer": "My proudest achievement is developing a pharmacy stock-tracking app that reduced monthly write-offs from roughly 12,000 ₹ to about 2,000 ₹.",
+            "quality": 5,
+            "invented": []
+          },
+          {
+            "id": "F5",
+            "label": "Describe a time you led others",
+            "kind": "long_text",
+            "answer": "I led four students to build a timetable app. I organized weekly sprints and held Friday demos to keep us on track. After ten weeks we shipped the app, and the college now uses it for about 600 students.",
+            "quality": 5,
+            "invented": []
+          },
+          {
+            "id": "F6",
+            "label": "Why this role?",
+            "kind": "long_text",
+            "answer": "I like the focus on small merchants and think I could help. I have built useful apps and led small teams before, so I feel well-suited to contribute in this role.",
+            "quality": 5,
+            "invented": []
+          }
+        ],
+        "transcript": [
+          {
+            "role": "interviewer",
+            "text": "Hi! I'll help you fill in Product Engineer, Aurora Labs. Nothing gets submitted without your OK. What's your full name?"
+          },
+          {
+            "role": "applicant",
+            "text": "Rohan Kulkarni"
+          },
+          {
+            "role": "interviewer",
+            "text": "Thanks, Rohan. Which city are you in?"
+          },
+          {
+            "role": "applicant",
+            "text": "I'm in Nashik."
+          },
+          {
+            "role": "interviewer",
+            "text": "Great, Nashik noted. Tell me about something you've built. What was it, and who used it?"
+          },
+          {
+            "role": "applicant",
+            "text": "I built a small app for a local business."
+          },
+          {
+            "role": "interviewer",
+            "text": "What exactly does the app do, and which part did you personally own?"
+          },
+          {
+            "role": "applicant",
+            "text": "It tracks pharmacy stock by scanning medicine barcodes, and I wrote the whole Kotlin app and its Firebase backend myself."
+          },
+          {
+            "role": "interviewer",
+            "text": "Thanks for that detail. Who used the app, and what changed because of it? Any numbers to share?"
+          },
+          {
+            "role": "applicant",
+            "text": "Three pharmacy staff use it daily; monthly write‑offs dropped from ~12,000 ₹ to ~2,000 ₹."
+          },
+          {
+            "role": "interviewer",
+            "text": "Good impact there. What is your proudest achievement so far, and what did it change for you or others?"
+          },
+          {
+            "role": "applicant",
+            "text": "I’m proud of a project that helped a small team improve efficiency."
+          },
+          {
+            "role": "interviewer",
+            "text": "What exactly was the project, and how did it improve efficiency?"
+          },
+          {
+            "role": "applicant",
+            "text": "It was the pharmacy stock‑tracking app; it cut monthly write‑offs from about 12,000 ₹ to around 2,000 ₹."
+          },
+          {
+            "role": "interviewer",
+            "text": "Thanks for sharing that. Can you describe a time you led others? Who were you leading, and what did you do?"
+          },
+          {
+            "role": "applicant",
+            "text": "I led four students building a timetable app."
+          },
+          {
+            "role": "interviewer",
+            "text": "What did you do as the lead, and how did it turn out?"
+          },
+          {
+            "role": "applicant",
+            "text": "I ran weekly sprints, held Friday demos, and we shipped in 10 weeks; the college now uses it for about 600 students."
+          },
+          {
+            "role": "interviewer",
+            "text": "Why does this role at Aurora Labs interest you, and what makes you a good fit?"
+          },
+          {
+            "role": "applicant",
+            "text": "I like the focus on small merchants and think I could help."
+          },
+          {
+            "role": "interviewer",
+            "text": "What about your skills or experience makes you a good fit for this role?"
+          },
+          {
+            "role": "applicant",
+            "text": "I’ve built useful apps and led small teams before."
+          },
+          {
+            "role": "interviewer",
+            "text": "To confirm, your name is Rohan Kulkarni, based in Nashik. You built an app tracking pharmacy stock by scanning barcodes, wrote the Kotlin app and Firebase backend, used daily by three pharmacy staff, cutting monthly write-offs from about 12,000 ₹ to 2,000 ₹. Your proudest achievement is this app, which improved efficiency similarly. You led four students building a timetable app, ran weekly sprints and demos, and shipped in 10 weeks for 600 students. You want this role because you like the focus on small merchants and have built apps and led teams before. Is that right?"
+          },
+          {
+            "role": "applicant",
+            "text": "Yes."
+          },
+          {
+            "role": "interviewer",
+            "text": "One last thing: Is there a number we can include about your pharmacy stock-tracking app, like downloads or active users? Or should I skip that?"
+          },
+          {
+            "role": "applicant",
+            "text": "Three staff use it daily, so you could list 3 active users."
+          },
+          {
+            "role": "interviewer",
+            "text": "Thanks, Rohan. Please review the draft answers on your screen. If you want to change anything, just tell me."
+          }
+        ]
+      }
+    }
+  ],
+  "notes": []
+}

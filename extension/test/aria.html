@@ -1,0 +1,38 @@
+<!doctype html>
+<!-- The markup shape Google Forms and Microsoft Forms use: roles and aria labels, no <label> elements. -->
+<html>
+  <head>
+    <title>Loan form - Forms</title>
+  </head>
+  <body>
+    <div role="heading" aria-level="1">Merchant loan</div>
+    <div role="list">
+      <div role="listitem">
+        <div role="heading" id="q1">Shop name *</div>
+        <input type="text" aria-labelledby="q1" aria-required="true" />
+      </div>
+      <div role="listitem">
+        <div role="heading">Tell us about your business</div>
+        <textarea aria-label="Tell us about your business"></textarea>
+      </div>
+      <div role="listitem">
+        <div role="heading" id="q3">Type of shop</div>
+        <div role="radiogroup" aria-labelledby="q3">
+          <div role="radio" aria-label="Kirana" aria-checked="false" tabindex="0" onclick="this.setAttribute('aria-checked', 'true')"></div>
+          <div role="radio" aria-label="Pharmacy" aria-checked="false" tabindex="0" onclick="this.setAttribute('aria-checked', 'true')"></div>
+        </div>
+      </div>
+      <div role="listitem">
+        <div role="heading">What do you sell?</div>
+        <div role="group" aria-label="What do you sell?">
+          <div role="checkbox" aria-label="Groceries" aria-checked="false" onclick="this.setAttribute('aria-checked', this.getAttribute('aria-checked') === 'true' ? 'false' : 'true')"></div>
+          <div role="checkbox" aria-label="Dairy" aria-checked="false" onclick="this.setAttribute('aria-checked', this.getAttribute('aria-checked') === 'true' ? 'false' : 'true')"></div>
+        </div>
+      </div>
+      <div role="listitem">
+        <span>Monthly sales (no label element)</span>
+        <div><input type="number" /></div>
+      </div>
+    </div>
+  </body>
+</html>

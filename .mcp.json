@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "elevenlabs": {
+      "command": "node",
+      "args": ["scripts/elevenlabs-mcp.mjs"]
+    }
+  }
+}

@@ -1,0 +1,215 @@
+# Apply करो (बोल भरो)
+
+Speak, and it fills the form. Apply करो reads an application form, interviews the user out loud, keeps probing until answers are specific, drafts each answer only from what the user said, and hands the result over for the user to submit. Nothing is submitted without their approval.
+
+Stack: Next.js 16, shadcn/ui (Base UI), Tailwind 4, anime.js, a WebGL shader background and orb, ElevenLabs Agents for voice, Groq for reading forms and writing drafts.
+
+## Run it
+
+```bash
+npm install
+npm run dev
+```
+
+Open http://localhost:3100. The **demo form works with no keys**: choose Demo, then Watch the demo.
+
+The dev server uses port 3100, not 3000, on purpose. A service worker left behind by another app on `localhost:3000` can hijack the page and break it.
+
+For your own forms and a live agent, copy `.env.example` to `.env.local` and follow [docs/SETUP.md](docs/SETUP.md) (or open `/setup` in the app).
+
+**Keep keys in `.env.local` only.** `.env.example` is committed, so it must stay blank.
+
+## Scripts
+
+| Command | What it does |
+| --- | --- |
+| `npm run dev` | Dev server on port 3100 |
+| `npm run build` | Production build |
+| `npm test` | Unit tests (guard, parser, store, tools, drafting, profile, Groq client, spectrum, eval scoring, Hindi demo, errors) |
+| `npm run configure:agent` | Applies the prompt, first message, variables, model and the three tools to your ElevenLabs agent, then verifies them (`-- --dry` previews) |
+| `npm run smoke:agent` | Talks to the agent in text mode and checks it saves answers with real quotes (`-- --hi` for Hindi and Hinglish) |
+| `npm run eval` | The scoreboard: naive form-reader against the real agent, graded by a Groq judge. Writes `data/eval.json` (`-- --runs 1` for a quick check) |
+| `npm run check:speech` | Streams synthetic Hindi and Hinglish speech into the live agent and prints what its speech recognition heard |
+| `npm run test:extension` | Loads the browser extension into Chrome and reads and fills two fixture pages (needs the app running) |
+| `npm run typecheck` | TypeScript check |
+| `npm run lint` | ESLint |
+
+## How it works
+
+1. **Ingest** (`app/api/ingest`): a Google Form is fetched and parsed from its `FB_PUBLIC_LOAD_DATA_` data (no browser needed), or the user pastes the questions. Groq then builds an *intent graph*: for each question, what the form owner really wants and the few facts a strong answer needs ("slots"). If saved facts exist on this device, matching slots are pre-filled and marked "to confirm".
+2. **Interview** (`hooks/use-agent.tsx`): an ElevenLabs agent talks to the user. The plan travels as dynamic variables. The agent calls client tools in the browser:
+   - `record_answers` saves `{field, slot, value, quote}` (fire and forget, so it adds no latency).
+   - `finish_interview` is the correctness gate. It returns anything still open or unconfirmed, so the agent keeps asking.
+   - `edit_answer` rewrites one drafted answer during review, from the user's own words.
+3. **Guard** (`lib/core.ts`): a value is accepted only if its quote appears in what the user actually said. Invented quotes are rejected and shown in the Evidence panel. A spoken "yes" to a saved fact confirms it and keeps the original quote.
+4. **Drafts** (`hooks/use-drafts.ts`, `app/api/draft`): a draft is written per field in the background as facts arrive, from those facts only. Numbers the user never said are flagged. A field the user edited by hand is never redrafted. Without a Groq key, drafts fall back to the user's own wording, joined up.
+5. **Review and hand-over** (`components/workspace/review-panel.tsx`, `handoff-panel.tsx`): edit any answer, ask for a rewrite, see the quotes behind it, then Approve. A Google Form opens with every answer pre-filled and the user presses Submit. Other forms get copy-and-paste or JSON.
+6. **Saved profile** (`lib/profile.ts`): with a switch the user controls, confirmed facts are saved in this browser and can be forgotten from the landing page or the review screen. They stay in this browser unless the user signs in with Google and turns on sync (see Google sign-in below).
+7. **Resume where you left off** (`lib/persist.ts`, `hooks/use-saved-session.ts`): the interview is saved in this browser after every change, so a refresh or a crash loses nothing. The landing page offers Resume or Discard. The clock is shifted by the time away, so the time shown later is time spent interviewing. Nothing is sent anywhere. A `?replay` run is never saved.
+8. **Time saved** (`components/workspace/time-saved.tsx`): the hand-over screen shows how long the interview took next to an estimate of typing the same answers by hand (40 words a minute, plus 25 seconds of thinking per long answer). The estimate says it is one. A scripted replay has no honest speaking time, so it shows the typing side only.
+9. **Answer strength** (`answerStrength` in `lib/core.ts`, `strength-meter.tsx`): for each long answer, whether it has your own part, a number, an outcome and enough detail. It checks only what that form's slots can satisfy, and facts that are still waiting for a yes do not count.
+10. **Resume upload** (`app/api/document`, `lib/document.ts`): a PDF (text read with `unpdf`), a text file, or pasted text. Groq finds facts for the open slots, each with a quote from the document. The page checks every quote against the document again, and keeps the ones that are really there. They arrive as "to confirm" facts labelled with the file name, and the agent asks only about the gaps. The document is read once and not stored. A scanned PDF has no text to read: paste it instead.
+
+Resilience built in: a scripted demo replay (no keys, no network), a text-only mode (noisy rooms), a paste-the-questions path for forms that can't be fetched, and a CSS fallback if WebGL is unavailable.
+
+```
+app/api/ingest        form -> session (Google parse + Groq intent graph)
+app/api/draft         one answer from the user's facts (Groq, or a plain join)
+app/api/prefill       match saved facts to new slots (Groq)
+app/api/document      file -> text, and text + open slots -> quoted facts (Groq)
+app/api/auth/*        Neon Auth's own API (sign-in, callback, session, sign-out), proxied
+app/api/forms/*       connect Google Forms: start, callback, disconnect
+app/api/account       who is signed in and what they can do (never a token)
+app/api/profile       the signed-in user's synced facts (GET, PUT, DELETE)
+app/api/voice/session connect info for the agent (public id, or token for a private agent)
+app/api/health        which keys are configured
+app/setup             copy-paste agent setup, with live status
+app/scoreboard        baseline against Apply करो, read from data/eval.json
+data/eval.json        the last `npm run eval` result (committed, so the page has numbers)
+lib/core.ts           guard, coverage, drafts, hand-over, profile logic (pure, tested)
+lib/interview-store.ts  reducer + tiny store shared by tools, voice and demo
+lib/tools.ts          the three client tools the agent calls
+lib/llm.ts            the only file that talks to Groq (strict JSON schema)
+lib/gforms.ts         Google Form parser and URL allowlist
+lib/agent-prompt.ts   the prompt and tool definitions to paste into ElevenLabs
+lib/gl.ts             WebGL helper for the two shaders
+lib/demo.ts           demo forms (job in English and Hindi, merchant loan in Hindi), scripted interviews, scripted drafts, ?replay flag
+lib/persist.ts        save and restore the interview in this browser (pure parts tested)
+lib/document.ts       upload a file, pre-fill open slots from it, re-check every quote
+lib/auth.ts           Google Forms connection: OAuth code flow with PKCE and the encrypted token cookie, Web APIs only (tested)
+lib/auth/             Neon Auth server and client instances
+lib/identity.ts       the signed-in user, from Neon Auth
+lib/forms-api.ts      read a private form through the Google Forms API (tested)
+lib/profile-store.ts  synced facts: Postgres through Neon's driver, or in memory for tests
+lib/eval.ts           simulated applicant, judge schema, scoring, aggregation (pure, tested)
+lib/agent-errors.ts   microphone / network / refused / setup errors in plain words (pure, tested)
+lib/replay.ts         reads the ?replay flag once per page load
+hooks/                agent (voice, text, demo), drafts, health, profile count
+scripts/              configure-agent, smoke-agent, eval, speech-check
+components/shader/    background and orb shaders
+components/workspace/ plan, talk, review, hand-off and evidence panels
+components/landing/   landing page
+```
+
+## ElevenLabs setup and MCP
+
+The agent is configured from code, not by hand: `lib/agent-prompt.ts` is the single source, and `npm run configure:agent` pushes it to the agent named in `.env.local` (tools are matched by name, so it is safe to re-run). `.mcp.json` registers the official ElevenLabs MCP server (`elevenlabs-mcp`, needs `uv`) through `scripts/elevenlabs-mcp.mjs`, which reads the key from `.env.local`. In Claude Code, approve the project server and its tools (`get_agent`, `list_agents`, `simulate_conversation`, `get_conversation`, text to speech and more) become available.
+
+## Scoreboard
+
+`npm run eval` plays one simulated applicant against two interviewers and grades both. The applicant (Groq) knows eight facts about a pharmacy stock app, a hackathon result, a team he led and why he wants the role, and gives each up only when a question asks for that detail. The **form-reader** asks each form question word for word and keeps the first answer. **Apply करो** is the real ElevenLabs agent in text mode, running the real client tools, quote guard and open-slot check. Both sets of facts go through the same `draftAnswer`, with the same notes on each question, and a Groq judge that is not told which tool wrote what scores facts recalled (of 8), answer quality (1 to 5, long answers) and invented claims.
+
+The result is written to `data/eval.json` and shown at `/scoreboard` in the same visual language as the app. The page reports whatever the file says, a bad run included.
+
+Read the numbers with these limits in mind: one model family plays the applicant, drafts and judges; the plan is the hand-written demo plan, not one generated from a form; a handful of runs shows the size of a gap, not a significance test; and the baseline asking each label once is deliberately naive.
+
+**Last run (18 Oct 2026, 5 runs, none failed).**
+
+| | Form-reader | Apply करो |
+| --- | --- | --- |
+| Facts recalled, of 8 | 0 (every run) | 5.2 (best 6, worst 4) |
+| Answer quality, 1 to 5 | 2 | 4.5 |
+| Invented claims per run | 0 | 0 |
+| Turns | 6 | 13.6 (all 5 interviews finished) |
+
+Apply करो reliably drew out the facts it asked for directly: what the person built, who used it and what changed, and the team he led and how it ended (4 or 5 runs of 5 each). The prompt makes it ask once more after a vague answer to an open question. That moved what the app does from 0 of 5 runs to 4 of 5 (the run before that change scored 4.6 of 8 with 13.4 turns and 0 invented). Two facts are still missing: why he wants the role (0 of 5) and the hackathon result (0 of 5, hinted at in one run). On those the agent still accepts a feeling ("I'm proud of creating something useful", "I like building things that help small businesses") as an answer and moves on. To try again: change `AGENT_SYSTEM_PROMPT`, run `npm run configure:agent`, then `npm run eval`.
+
+The form-reader's 0 is by construction: it asks "Tell us about something you've built" once and gets a one-line answer. Read it as the cost of not interviewing, not as a tuned opponent. The simulated applicant is also strict, so the absolute recall figures say more about the agent's follow-up habits than about real people.
+
+## Hindi and Hinglish
+
+The language switch on the landing page now goes all the way through. Choose **हिन्दी** and the Demo tab gives a Hindi version of the same form (its own questions and its own scripted interview), the agent greets and asks in Devanagari, keeps English words as people say them, and the quote guard works on whatever script the person used. Drafts are written in the language of the question.
+
+How it is wired: `npm run configure:agent` turns on the agent's `hinglish_mode`, adds a `hi` language preset and lets the browser choose the language; the app then starts a Hindi session with `overrides.agent.language = "hi"`. The greeting and the language instruction travel as dynamic variables (`greeting`, `language`), so one first message and one prompt serve both languages. Re-run `configure:agent` once to apply this to an existing agent.
+
+What has been tested, and what has not:
+
+- **Tested:** the live agent in Hindi over text (`npm run smoke:agent -- --hi`): replies in Devanagari, quotes copied exactly, including a reply typed in Roman-script Hinglish. The agent's own speech recognition on synthetic speech (`npm run check:speech`): Hindi sentences came back word for word apart from English loanwords, which the recogniser writes in Latin letters (WhatsApp, bot), and numbers as digits; Roman-script Hinglish came back in Devanagari with the English words kept.
+- **Not tested:** a real human voice, regional accents, a noisy room, or how the agent's voice sounds in Hindi (the default voice is an English one; pick a Hindi-capable voice in the ElevenLabs dashboard and listen first).
+
+## Demo kit and recorded fallback
+
+[docs/DEMO.md](docs/DEMO.md) has a timed three-minute script, a cue sheet for playing the applicant, the talk track and a what-to-do-when-it-breaks table.
+
+For when Wi-Fi or a service fails, `/?replay=1` replays the scripted interview with large captions for both sides and finishes in the review screen with answers written in advance, so it needs only the local server. Add `&lang=hi` for the Hindi form and `&speed=2` for double speed. The landing page links to it from the Demo tab and from the "Couldn't reach the server" error.
+
+When something fails live, the Talk panel says why and offers the way out: a blocked microphone offers typing, a refused or unreachable voice service offers a retry or the recorded demo, a missing agent links to the setup guide.
+
+## Deploy (Vercel)
+
+1. Push the repo to GitHub and import it in Vercel. Framework preset: Next.js. The defaults are right.
+2. In **Settings, Environment Variables**, add for Production and Preview: `GROQ_API_KEY`, `ELEVENLABS_AGENT_ID`, `ELEVENLABS_API_KEY`, and optionally `GROQ_MODEL`. For Google sign-in also add `NEON_AUTH_BASE_URL` and `NEON_AUTH_COOKIE_SECRET` (and `DATABASE_URL` to sync facts), and add your domain under Neon Auth's trusted domains. For private forms add `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` and `AUTH_SECRET`, and register `https://your-domain/api/forms/callback` as an authorised redirect URI in Google Cloud. Keys go in the Vercel dashboard only: never commit them, never prefix them with `NEXT_PUBLIC_`.
+3. Deploy, then open `/api/health`. Expect `{"llm":true,"voice":true,"voicePrivate":true}`.
+4. `data/eval.json` is committed, so `/scoreboard` has numbers on the deployed site (`next.config.ts` makes sure the file ships with the server). To refresh it, run `npm run eval` locally and commit the file.
+
+### Make the agent private
+
+A new agent is public: anyone who finds its id can start conversations on your ElevenLabs account. Before the URL goes anywhere:
+
+1. In the ElevenLabs dashboard, open the agent's security settings, turn on authentication, and add your deployed domain to the allowlist. (Dashboard labels move around; in the API this is the `platform_settings.auth` section of the agent.)
+2. Keep `ELEVENLABS_API_KEY` set on the server. `/api/voice/session` then returns a short-lived WebRTC token (falling back to a signed WebSocket URL) and the key never reaches the browser. With the key unset, the route returns the bare agent id, which a private agent will refuse. The app shows that as "ElevenLabs refused the connection".
+3. Check it: `curl https://your-app.example/api/voice/session` should show `"mode":"token"`, not `"public"`.
+4. Set a spending limit on the ElevenLabs account. The token route is open to anyone who can load the page, so for a demo that is not meant to be public, also turn on Vercel's Deployment Protection.
+5. `smoke:agent`, `eval` and `check:speech` ask for a signed URL when `ELEVENLABS_API_KEY` is set, so they keep working once the agent is private.
+
+Checked here: with `ELEVENLABS_API_KEY` set, `/api/voice/session` returns `mode: "token"`. Not tried: a private agent. The agent this repo was built against is still public, and no Vercel deploy has been done.
+
+## Design
+
+Palette sampled from the reference: forest `#081800`, tiles `#131e09` / `#192d0b`, lime `#e0f16e` / `#daed72` / `#cae23d`, cream `#e9f8b8`, olive `#648600`. Archivo throughout (variable weight and width: wide and heavy, in capitals, for display type) with Geist Mono for small labels. Corners are 2px everywhere and there are no italics. Lime blocks carry the key numbers and the main form card, frosted glass panels sit over a slow noise shader, and the voice orb is a second shader ringed by a live frequency dial. Dark is the default, light is a toggle (or press `d`). Motion uses anime.js and respects `prefers-reduced-motion`.
+
+## Browser extension (side panel)
+
+`extension/` is a Chrome extension that reads the form on any page (Google Forms, Microsoft Forms, a company's own site) and fills it in after approval. It opens in Chrome's side panel, frames this app, and talks to it with checked `postMessage`s. Source `page` in `/api/ingest` turns the questions it read into an interview. See `extension/README.md` for install, permissions and limits. `npm run test:extension` loads it into real Chrome and reads and fills two fixture pages. Not yet tried: a real Google or Microsoft form, and the microphone inside the side panel.
+
+## Google sign-in
+
+Optional. The app works without it.
+
+**Sign-in is Neon Auth** (managed Better Auth, in the same Neon project as the database). `lib/auth/server.ts` creates it, `app/api/auth/[...path]` proxies its API, and `lib/identity.ts` says who is signed in. Google works at once with Neon's shared dev credentials (the consent screen then shows Neon's name). For production add your own Google client in Neon's Auth settings. Signed in, the user can:
+
+1. **Sync saved facts.** With a database (`DATABASE_URL`) and a switch the user controls (off by default), saved facts and their quotes also live in their account, keyed by their Neon Auth user id, so every device has them. The server keeps the newest fact per question, so a stale device cannot wipe a newer one. The switch, "Delete what is stored in my account" and Forget all sit in the account menu and the review screen.
+2. **Connect Google Forms and read private forms.** Neon Auth's sign-in cannot ask Google for extra permissions, so this is a second, separate consent with a Google client of your own (`GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, plus `AUTH_SECRET`). It is a small OAuth code flow with PKCE written by hand (`lib/auth.ts`, `app/api/forms/*`). The read-only scope is `forms.body.readonly`, and Google only allows it for forms the account owns or can edit, so the user pastes the form's edit link (ending in `/edit`). The Google tokens live in one AES-GCM encrypted `HttpOnly` cookie that only works for the Neon user who made it; they never reach the browser or the database. A form someone else owns and you only fill in still has to be public or pasted as text.
+
+State-changing routes also check the `Origin` header. Setup steps are on `/setup`, step 06.
+
+Privacy: with sync off nothing about the user is stored by Apply करो beyond the sign-in itself (Neon Auth keeps the account). With sync on, the facts and their quotes are in the database you configure. Turning sync off does not delete what is stored: use the delete button.
+
+## Environment
+
+Copy `.env.example` to `.env.local`.
+
+| Variable | Needed for |
+| --- | --- |
+| `GROQ_API_KEY` | Reading your own forms, drafts, rewrites, saved-fact matching |
+| `ELEVENLABS_AGENT_ID` | The live voice agent |
+| `ELEVENLABS_API_KEY` | Optional: private agent (short-lived tokens) |
+| `GROQ_MODEL` | Optional: defaults to `openai/gpt-oss-120b` |
+| `NEON_AUTH_BASE_URL`, `NEON_AUTH_COOKIE_SECRET` | Optional: Google sign-in through Neon Auth. The secret is 32 or more random characters |
+| `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `AUTH_SECRET` | Optional: connect Google Forms to read private forms. `AUTH_SECRET` is 32 or more random characters |
+| `APP_URL` | Optional: the public address, when behind a proxy |
+| `DATABASE_URL` | Optional: a Postgres connection string, to sync saved facts |
+
+## Phases
+
+**Phase 1: done.** Scaffold, design system, landing and workspace, intent-graph ingest, ElevenLabs client tools, quote guard, text and demo modes, setup page.
+
+**Phase 2: done.** Drafts, review with quotes, edit by text or voice, approve, hand-over (prefilled Google Form link, copy, JSON), saved profile with confirmation, Groq in place of Gemini, the palette, Archivo, shaders and glass redesign.
+
+**Phase 3: done.** The scoreboard (`npm run eval`, `/scoreboard`), Hindi and Hinglish end to end with a Hindi demo form, the demo kit and recorded fallback, error and empty states for the microphone, the network and ElevenLabs, a keyboard and focus pass, and the Vercel and private-agent notes.
+
+**Extras: done.** Resume where you left off, time saved on the hand-over screen, a second demo form (a kirana owner's working-capital loan, spoken in Hindi), the answer-strength meter, and resume upload (PDF, text or paste). `tests/features.test.ts` covers them.
+
+**Google sign-in: done.** Sign in with Google through Neon Auth, optional synced facts in the user's account, and Google Forms as a second consent so private forms can be read through the Forms API. `tests/auth.test.ts` covers it, including two devices syncing through the real route handlers.
+
+**Not done:** a visible-browser fill for forms that can't be prefilled by link, an India data residency option, a real Vercel deploy.
+
+## Not yet verified against live services
+
+Built from the installed SDK types and docs; the Groq calls were exercised for real (drafting and rewriting), the rest was not:
+
+- A real Google Form (the parser is tested on a synthetic page with the documented layout; paste mode is the fallback). The prefilled-link builder is unit-tested but not opened against a live form.
+- A live ElevenLabs agent confirming saved facts from an earlier form. (Dynamic variables, the three tool names, Hindi in text and Hindi speech recognition on synthetic speech were exercised in Phase 3: see above.)
+- Resume upload: a real PDF went through the real route and real Groq extraction (on `openai/gpt-oss-20b`, because the 120b daily token quota had been spent by eval runs), and the quote check dropped a quote that was stitched across two sentences. The browser flow ran with the facts route mocked for the same reason. Not tried: a scanned PDF, a resume in Hindi, a two-column layout.
+- Google sign-in: Neon Auth is provisioned and the page reaches Google's sign-in through it (checked in a browser), but a full sign-in with a real Google account has not been completed here. Synced facts: the store's SQL was checked against the real Neon database; the sync routes with a signed-in Neon session were tested with the identity mocked. Connecting Forms: tested with a mocked token endpoint (state and PKCE checks, tokens tied to the user, a forged cookie), not with a real Google client. Not tried: the Forms API against a real form (the response shape and the hex question id to `entry.NNN` mapping come from Google's documentation).
+- Real voices: Hindi speech from a person, accents and noise, and how the agent's voice sounds. The microphone path in the browser was checked only as far as the blocked-microphone state.
