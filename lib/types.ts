@@ -142,8 +142,6 @@ export interface Health {
   voicePrivate: boolean
   /** Neon Auth (Google sign-in) is configured. */
   auth: boolean
-  /** Connecting Google Forms is configured (own Google client). */
-  forms: boolean
   /** A database for syncing saved facts is configured. */
   sync: boolean
   /** A GitHub OAuth app is configured, so an account (private repos included) can be connected. */
@@ -153,10 +151,6 @@ export interface Health {
 /** What the browser is told about the signed-in user. Never the tokens. */
 export interface AuthInfo {
   configured: boolean
-  /** The server has its own Google client, so Google Forms can be connected. */
-  formsAvailable: boolean
   sync: boolean
   user: { name: string; email: string; picture?: string } | null
-  /** Google Forms is connected, so private forms the user can edit can be read. */
-  forms: boolean
 }

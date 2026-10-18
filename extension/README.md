@@ -36,7 +36,3 @@ The side panel keeps its own copy of the profile: its storage is separate from t
 - Dropdowns that only draw their options when opened, and controls in closed shadow roots, are skipped. Questions asked as images, and file uploads, are not read.
 - Heuristics, not per-site parsers, so odd markup can mislabel a question. Check the plan before the interview.
 - Inside the panel the app is a third-party frame: sign-in and the saved facts of the normal site are not shared with it, and the side panel cannot show Chrome's microphone prompt. If the app says the microphone is blocked, press **Allow microphone** at the top of the panel once: it opens a normal tab that asks Chrome, and the allowance then covers the framed app. Text mode works regardless.
-
-## Test
-
-`npm run test:extension` starts Chrome, loads the extension over the DevTools protocol (branded Chrome ignores `--load-extension`), opens two fixture pages (plain HTML, and Google-Forms-style ARIA), reads them and fills them. It also seeds a profile into the side panel's own storage and checks that reading the plain page fills the two known questions and leaves the rest open. Model calls are stubbed, so no key is needed. Needs the app on `APP` (default `http://localhost:3100`) and Chrome at the usual path (or set `CHROME`).

@@ -10,7 +10,6 @@ import {
   AGENT_TOOLS,
   DYNAMIC_VARIABLE_DEFAULTS,
 } from "@/lib/agent-prompt"
-import { formsConfig } from "@/lib/auth"
 import { githubClientId } from "@/lib/github-device"
 import { neonAuth } from "@/lib/auth/server"
 import { profileStore } from "@/lib/profile-store"
@@ -63,7 +62,6 @@ export default function SetupPage() {
   const voice = Boolean(process.env.ELEVENLABS_AGENT_ID)
   const priv = Boolean(process.env.ELEVENLABS_API_KEY)
   const auth = Boolean(neonAuth())
-  const forms = auth && Boolean(formsConfig())
   const sync = auth && Boolean(profileStore())
   const github = Boolean(githubClientId())
 
@@ -110,8 +108,7 @@ export default function SetupPage() {
           <Status ok={voice} title="Voice agent" hint="ELEVENLABS_AGENT_ID" />
           <Status ok={priv} title="Private agent (optional)" hint="ELEVENLABS_API_KEY" />
           <Status ok={auth} title="Google sign-in (optional)" hint="NEON_AUTH_BASE_URL, NEON_AUTH_COOKIE_SECRET" />
-          <Status ok={forms} title="Private forms (optional)" hint="GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, AUTH_SECRET" />
-          <Status ok={sync} title="Synced facts (optional)" hint="DATABASE_URL" />
+          <Status ok={sync} title="Account storage (optional)" hint="DATABASE_URL" />
           <Status ok={github} title="GitHub connect (optional)" hint="GITHUB_CLIENT_ID" />
         </div>
 
@@ -212,12 +209,11 @@ export default function SetupPage() {
             and the key never leaves the server. Also set a spending limit on your account.
           </p>
         </Step>
-        <Step n="06" title="Optional: Google sign-in, private forms and synced facts">
+        <Step n="06" title="Optional: Google sign-in, saved facts and your forms">
           <p>
-            Sign-in uses <a href="https://neon.com/docs/auth/overview">Neon Auth</a>. Signed in, the
-            person can keep their saved facts in their account, and (with a Google client of your own)
-            connect Google Forms so Apply करो can read a <em>private</em> form they own or can edit.
-            Public forms and everything else work without any of this.
+            Sign-in uses <a href="https://neon.com/docs/auth/overview">Neon Auth</a>. Signed in, your saved facts
+            and every form you approve (with its questions and your answers) are kept in your account and shown on the
+            Dashboard, and they follow you to any device. Without it everything stays in this browser.
           </p>
           <ol className="mt-2">
             <li>
@@ -230,29 +226,14 @@ export default function SetupPage() {
               settings.
             </li>
             <li>
-              Synced facts: put a Postgres connection string in <code>.env.local</code> as{" "}
-              <code>DATABASE_URL=</code> (the same Neon database works). The table creates itself.
-            </li>
-            <li>
-              Private forms (optional): in{" "}
-              <a href="https://console.cloud.google.com/">Google Cloud Console</a> enable{" "}
-              <strong>Google Forms API</strong>, set up the OAuth consent screen (External, add test
-              users, add the scope <code>https://www.googleapis.com/auth/forms.body.readonly</code>),
-              and create an OAuth client of type Web application with the redirect URI{" "}
-              <code>http://localhost:3100/api/forms/callback</code>. Put the client ID and secret in{" "}
-              <code>.env.local</code> as <code>GOOGLE_CLIENT_ID=</code> and{" "}
-              <code>GOOGLE_CLIENT_SECRET=</code>, and add <code>AUTH_SECRET=</code> with 32 or more
-              random characters (it encrypts the Forms connection cookie). Behind a proxy also set{" "}
-              <code>APP_URL=</code>.
+              Account storage: put a Postgres connection string in <code>.env.local</code> as{" "}
+              <code>DATABASE_URL=</code> (the same Neon database works). The tables create themselves.
             </li>
             <li>Restart the dev server and reload this page.</li>
           </ol>
           <p className="mt-3">
-            Good to know: the Forms API only opens forms the signed-in Google account owns or can edit,
-            and needs the form&apos;s <em>edit</em> link (ending in <code>/edit</code>), not the share
-            link. Neon Auth&apos;s sign-in cannot ask for the Forms permission, which is why connecting
-            Forms is its own step with its own Google client. While that consent screen is in Testing,
-            Google expires the connection after 7 days and shows an &quot;unverified app&quot; warning.
+            Good to know: a form that needs a Google sign-in can&apos;t be read from a link. Open it in your
+            browser and use the extension&apos;s Autofill, or copy its questions with the snippet on the Paste tab.
           </p>
         </Step>
         <Step n="07" title="Optional: connect GitHub (all repos)">

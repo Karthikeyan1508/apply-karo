@@ -270,35 +270,28 @@ export async function prefillFromProfile(session: Session, useModel: boolean): P
 
 // ---------- Optional: keep the facts in the signed-in Google account too ----------
 
-const SYNC_KEY = "bolbharo.sync.v1"
+/**
+ * Saved facts are always kept in the account too. Signed out, or without a database, those calls just fail
+ * quietly and the facts stay on this device.
+ */
+export const syncEnabled = () => true
 
-/** Off until the user turns it on. Local facts stay local otherwise. */
-export function syncEnabled(): boolean {
+/** True when there is no account to keep facts in: nobody signed in, or no database. Quiet on failure. */
+async function noAccount(): Promise<boolean> {
   try {
-    return localStorage.getItem(SYNC_KEY) === "1"
+    const info = (await (await fetch("/api/account", { cache: "no-store" })).json()) as { user?: unknown; sync?: boolean }
+    return !info.user || !info.sync
   } catch {
-    return false
+    return true
   }
-}
-
-export function setSyncEnabled(on: boolean): void {
-  try {
-    if (on) localStorage.setItem(SYNC_KEY, "1")
-    else localStorage.removeItem(SYNC_KEY)
-  } catch {
-    // storage blocked: sync simply stays off
-  }
-  notify()
 }
 
 /**
- * After a local edit, the account follows when this device syncs. A removal clears the account first,
- * because the account keeps the newest of every fact and would otherwise hand the removed one back.
+ * After a local edit, the account follows. A removal clears the account first, because the account keeps
+ * the newest of every fact and would otherwise hand the removed one back. Null when there is no account.
  */
-export async function afterLocalChange(
-  removed: boolean
-): Promise<boolean | null> {
-  if (!syncEnabled()) return null
+export async function afterLocalChange(removed: boolean): Promise<boolean | null> {
+  if (await noAccount()) return null
   if (removed && !(await deleteSynced())) return false
   return pushProfile()
 }

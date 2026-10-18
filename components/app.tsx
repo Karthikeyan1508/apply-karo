@@ -2,6 +2,7 @@
 
 import { useEffect, useRef } from "react"
 import { EmbedHome, ExtensionBridge, useEmbedded } from "@/components/extension-bridge"
+import { Dashboard } from "@/components/dashboard/dashboard"
 import { Landing } from "@/components/landing/landing"
 import { Workspace } from "@/components/workspace/workspace"
 import { Onboarding } from "@/components/profile/onboarding"
@@ -35,6 +36,7 @@ function Shell() {
   const embedded = useEmbedded()
   useReplayStart()
   if (view === "profile") return <ProfileScreen />
+  if (view === "dashboard") return <Dashboard />
   if (view === "onboarding") return <Onboarding />
   if (phase !== "landing") return <Workspace />
   return embedded ? <EmbedHome /> : <Landing />

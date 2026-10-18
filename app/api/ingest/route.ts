@@ -1,10 +1,7 @@
 import { z } from "zod"
 import { newId } from "@/lib/core"
 import { demoSession, merchantSession } from "@/lib/demo"
-import { formsAccess, formsConfig, formsCookie, getForms, isSecure } from "@/lib/auth"
 import { AppError, errorResponse } from "@/lib/errors"
-import { fetchFormViaApi, formIdFromUrl } from "@/lib/forms-api"
-import { currentUser } from "@/lib/identity"
 import { PageForm } from "@/lib/page-form"
 import { parseCapture, parseFormUrl, parseGoogleForm } from "@/lib/gforms"
 import { buildIntentGraph, llmConfigured, structureFromText } from "@/lib/llm"
@@ -48,7 +45,7 @@ async function fetchFormHtml(start: URL): Promise<{ html: string; finalUrl: URL 
         throw new AppError(
           "FORM_PRIVATE",
           422,
-          "This form needs a Google sign-in. Make it public (anyone with the link), or use Paste questions."
+          "This form needs a Google sign-in, so a link can't be read. Open it in your browser and use the extension, or use Paste questions."
         )
       }
       url = next
@@ -59,7 +56,7 @@ async function fetchFormHtml(start: URL): Promise<{ html: string; finalUrl: URL 
       throw new AppError(
         "FORM_PRIVATE",
         422,
-        "This form needs a Google sign-in. Make it public (anyone with the link), or use Paste questions."
+        "This form needs a Google sign-in, so a link can't be read. Open it in your browser and use the extension, or use Paste questions."
       )
     }
     if (res.status === 404) {
@@ -75,29 +72,6 @@ async function fetchFormHtml(start: URL): Promise<{ html: string; finalUrl: URL 
     return { html, finalUrl: url }
   }
   throw new AppError("FETCH_FAILED", 502, "Too many redirects.")
-}
-
-/**
- * A private form, read with the signed-in user's Google Forms access. Null when the user has not
- * connected Forms, so the caller can ask them to. Throws when they have but Google says no.
- */
-async function readWithGoogleAccount(req: Request, link: URL) {
-  const cfg = formsConfig()
-  const user = cfg && (await currentUser())
-  const grant = cfg && user ? await getForms(req, cfg, user.id) : null
-  if (!cfg || !user || !grant) return null
-  const formId = formIdFromUrl(link)
-  if (!formId) {
-    throw new AppError(
-      "FORM_NEEDS_EDIT_LINK",
-      422,
-      "Google only opens a form you can edit through your account. For a form you only fill in, use the Paste tab and copy its questions from your own browser with the snippet there."
-    )
-  }
-  const access = await formsAccess(cfg, grant)
-  if (!access) throw new AppError("AUTH_EXPIRED", 401, "Your Google connection expired. Connect Google Forms again.")
-  const form = await fetchFormViaApi(formId, access.token)
-  return { form, cookie: access.tokens ? await formsCookie(user.id, access.tokens, cfg, isSecure(req)) : undefined }
 }
 
 export async function POST(req: Request) {
@@ -193,29 +167,9 @@ export async function POST(req: Request) {
         "No Groq key found. Add GROQ_API_KEY to .env.local, or try the demo form."
       )
     }
-    let form
-    let formUrl = link.toString()
-    let cookie: string | undefined
-    try {
-      const page = await fetchFormHtml(link)
-      form = parseGoogleForm(page.html)
-      formUrl = page.finalUrl.toString()
-    } catch (e) {
-      if (!(e instanceof AppError) || e.code !== "FORM_PRIVATE") throw e
-      const viaGoogle = await readWithGoogleAccount(req, link)
-      if (!viaGoogle) {
-        throw formsConfig() && (await currentUser())
-          ? new AppError(
-              "FORM_PRIVATE",
-              422,
-              "This form is private. Connect your Google account to read it (forms you own or can edit), make it public, or use Paste questions."
-            )
-          : e
-      }
-      form = viaGoogle.form
-      formUrl = viaGoogle.form.responderUri ?? formUrl
-      cookie = viaGoogle.cookie
-    }
+    const fetched = await fetchFormHtml(link)
+    const form = parseGoogleForm(fetched.html)
+    const formUrl = fetched.finalUrl.toString()
     if (!form) {
       throw new AppError(
         "PARSE_FAILED",
@@ -233,7 +187,7 @@ export async function POST(req: Request) {
       lang,
       fields: await buildIntentGraph(form, context, lang),
     }
-    return Response.json({ session }, cookie ? { headers: { "set-cookie": cookie } } : undefined)
+    return Response.json({ session })
   } catch (e) {
     return errorResponse(e)
   }

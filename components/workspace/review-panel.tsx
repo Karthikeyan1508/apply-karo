@@ -17,10 +17,11 @@ import { Switch } from "@/components/ui/switch"
 import { Textarea } from "@/components/ui/textarea"
 import { useAgent } from "@/hooks/use-agent"
 import { useInterview, useInterviewStore } from "@/hooks/use-interview"
-import { useAuth, useSyncEnabled } from "@/hooks/use-auth"
+import { useSyncing } from "@/hooks/use-auth"
 import { useProfileCount } from "@/hooks/use-profile-count"
 import { confirmedFacts, missingRequired } from "@/lib/core"
 import { rewriteField } from "@/lib/draft-client"
+import { recordForm } from "@/lib/history-client"
 import { forgetProfile, pushProfile, saveOnboardingAnswers, saveProfile, syncEnabled } from "@/lib/profile"
 import { sourceLabel } from "@/components/profile/fact-card"
 import type { FormField } from "@/lib/types"
@@ -189,8 +190,7 @@ export function ReviewPanel({ className }: { className?: string }) {
   const agent = useAgent()
   const { session, drafting } = useInterview()
   const saved = useProfileCount()
-  const auth = useAuth()
-  const syncing = useSyncEnabled() && Boolean(auth?.user && auth.sync)
+  const syncing = useSyncing()
   // In the side panel the point is reuse, so facts are remembered unless the person turns it off.
   const [remember, setRemember] = useState(() => typeof window !== "undefined" && window.parent !== window)
 
@@ -214,12 +214,14 @@ export function ReviewPanel({ className }: { className?: string }) {
     }
     if (remember && session) {
       const n = saveProfile(session)
-      const sync = syncEnabled() && syncing
+      const sync = syncing
       if (n) toast.success(`Saved ${n} ${n === 1 ? "fact" : "facts"} on this device${sync ? " and in your account" : ""}`)
       if (n && sync) {
         void pushProfile().then((ok) => ok || toast.warning("Couldn't reach your account. The facts are saved on this device."))
       }
     }
+    // Every form the person approves is kept for the dashboard, whether or not they remember its facts.
+    if (session) void recordForm(session)
     store.dispatch({ type: "approve" })
   }
 

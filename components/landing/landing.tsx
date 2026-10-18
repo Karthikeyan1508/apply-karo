@@ -11,6 +11,7 @@ import {
   Loader2Icon,
   SparklesIcon,
   UploadIcon,
+  LayoutDashboardIcon,
   UserRoundIcon,
   XIcon,
 } from "lucide-react"
@@ -19,7 +20,6 @@ import { useEffect, useRef, useState } from "react"
 import { toast } from "sonner"
 import { Logo } from "@/components/brand/logo"
 import { AccountMenu } from "@/components/account-menu"
-import { GoogleMark } from "@/components/brand/google-mark"
 import { CopyButton } from "@/components/copy-button"
 import { ThemeToggle } from "@/components/theme-toggle"
 import { Button } from "@/components/ui/button"
@@ -28,8 +28,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Textarea } from "@/components/ui/textarea"
 import { useHealth } from "@/hooks/use-health"
 import { useInterviewStore } from "@/hooks/use-interview"
-import { useAuth } from "@/hooks/use-auth"
-import { signInWithGoogle } from "@/lib/auth/client"
 import { useProfileCount } from "@/hooks/use-profile-count"
 import { useSavedSession } from "@/hooks/use-saved-session"
 import { reducedMotion } from "@/lib/anim"
@@ -119,13 +117,9 @@ function ResumeBanner() {
   )
 }
 
-/** A private form sends the person away to sign in. This keeps what they typed. */
-const PENDING_FORM = "bolbharo.pendingForm"
-
 function SourceCard() {
   const store = useInterviewStore()
   const health = useHealth()
-  const auth = useAuth()
   const saved = useProfileCount()
   const [tab, setTab] = useState<SourceTab | null>(null)
   const [url, setUrl] = useState("")
@@ -142,31 +136,6 @@ function SourceCard() {
   const [pasting, setPasting] = useState(false)
   const [pasted, setPasted] = useState("")
   const fileInput = useRef<HTMLInputElement>(null)
-
-  useEffect(() => {
-    try {
-      const back = sessionStorage.getItem(PENDING_FORM)
-      if (!back) return
-      sessionStorage.removeItem(PENDING_FORM)
-      // Storage can only be read after hydration, so this cannot be the initial state.
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      setUrl(back)
-      setTab("google")
-    } catch {
-      // storage blocked: the link just has to be pasted again
-    }
-  }, [])
-
-  function connectGoogle() {
-    try {
-      sessionStorage.setItem(PENDING_FORM, url)
-    } catch {
-      // storage blocked: the link just has to be pasted again
-    }
-    // A full-page trip: this route handler answers with a redirect to Google, so the router must not handle it.
-    if (!auth?.user) void signInWithGoogle()
-    else window.location.href = new URL("/api/forms/start", window.location.origin).href
-  }
 
   const active: SourceTab = tab ?? (health?.llm ? "google" : "demo")
   const ready =
@@ -243,9 +212,7 @@ function SourceCard() {
             className="h-12 px-4"
           />
           <p className="mt-2 text-xs text-muted-foreground">
-            {auth?.configured
-              ? "Open to anyone with the link, or sign in with Google for a private form you own."
-              : "The form must be open to anyone with the link."}
+            The form must be open to anyone with the link. For a private one, use the browser extension.
           </p>
         </TabsContent>
         <TabsContent value="text" className="pt-4">
@@ -475,12 +442,7 @@ function SourceCard() {
               </Button>
             </div>
           )}
-          {(error.code === "FORM_PRIVATE" || error.code === "AUTH_EXPIRED") && auth?.configured && (!auth.user || auth.formsAvailable) && (
-            <Button type="button" size="sm" className="mt-3 mr-2" onClick={connectGoogle}>
-              <GoogleMark /> {auth.user ? "Connect Google Forms" : "Sign in with Google"}
-            </Button>
-          )}
-          {["PARSE_FAILED", "FORM_PRIVATE", "FORM_NEEDS_EDIT_LINK", "FORM_NO_ACCESS", "AUTH_EXPIRED"].includes(error.code) && (
+          {["PARSE_FAILED", "FORM_PRIVATE"].includes(error.code) && (
             <Button type="button" size="sm" variant="outline" className="mt-3" onClick={() => setTab("text")}>
               Paste the questions instead
             </Button>
@@ -598,11 +560,20 @@ export function Landing() {
           <button
             type="button"
             onClick={() => view.open("profile")}
-            className="flex items-center gap-1.5 px-3 py-2 whitespace-nowrap text-muted-foreground transition-colors hover:text-foreground sm:px-4"
+            aria-label="Profile"
+            className="flex items-center gap-1.5 px-2.5 py-2 whitespace-nowrap text-muted-foreground transition-colors hover:text-foreground sm:px-4"
           >
-            <UserRoundIcon className="size-4" /> Profile
+            <UserRoundIcon className="size-4" /> <span className="hidden sm:inline">Profile</span>
           </button>
-          <Link href="/scoreboard" className="px-3 py-2 whitespace-nowrap text-muted-foreground transition-colors hover:text-foreground sm:px-4">
+          <button
+            type="button"
+            onClick={() => view.open("dashboard")}
+            aria-label="Dashboard"
+            className="flex items-center gap-1.5 px-2.5 py-2 whitespace-nowrap text-muted-foreground transition-colors hover:text-foreground sm:px-4"
+          >
+            <LayoutDashboardIcon className="size-4" /> <span className="hidden sm:inline">Dashboard</span>
+          </button>
+          <Link href="/scoreboard" className="hidden px-3 py-2 whitespace-nowrap text-muted-foreground transition-colors hover:text-foreground sm:block sm:px-4">
             Scoreboard
           </Link>
           <Link href="/setup" className="hidden px-4 py-2 whitespace-nowrap text-muted-foreground transition-colors hover:text-foreground sm:block">

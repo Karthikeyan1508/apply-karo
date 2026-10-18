@@ -30,7 +30,6 @@ For your own forms and a live agent, copy `.env.example` to `.env.local` and fol
 | `npm run smoke:agent` | Talks to the agent in text mode and checks it saves answers with real quotes (`-- --hi` for Hindi and Hinglish) |
 | `npm run eval` | The scoreboard: naive form-reader against the real agent, graded by a Groq judge. Writes `data/eval.json` (`-- --runs 1` for a quick check) |
 | `npm run check:speech` | Streams synthetic Hindi and Hinglish speech into the live agent and prints what its speech recognition heard |
-| `npm run test:extension` | Loads the browser extension into Chrome and reads and fills two fixture pages (needs the app running) |
 | `npm run typecheck` | TypeScript check |
 | `npm run lint` | ESLint |
 
@@ -58,7 +57,7 @@ app/api/draft         one answer from the user's facts (Groq, or a plain join)
 app/api/prefill       match saved facts to new slots (Groq)
 app/api/document      file -> text, and text + open slots -> quoted facts (Groq)
 app/api/auth/*        Neon Auth's own API (sign-in, callback, session, sign-out), proxied
-app/api/forms/*       connect Google Forms: start, callback, disconnect
+app/api/history       the signed-in person's filled forms (GET, PUT, DELETE)
 app/api/account       who is signed in and what they can do (never a token)
 app/api/profile       the signed-in user's synced facts (GET, PUT, DELETE)
 app/api/onboard/github  public GitHub profile and top repositories, as one source (GITHUB_TOKEN optional)
@@ -78,10 +77,10 @@ lib/gl.ts             WebGL helper for the two shaders
 lib/demo.ts           demo forms (job in English and Hindi, merchant loan in Hindi), scripted interviews, scripted drafts, ?replay flag
 lib/persist.ts        save and restore the interview in this browser (pure parts tested)
 lib/document.ts       upload a file, pre-fill open slots from it, re-check every quote
-lib/auth.ts           Google Forms connection: OAuth code flow with PKCE and the encrypted token cookie, Web APIs only (tested)
+lib/auth.ts           same-origin check and the account info the browser may see
 lib/auth/             Neon Auth server and client instances
 lib/identity.ts       the signed-in user, from Neon Auth
-lib/forms-api.ts      read a private form through the Google Forms API (tested)
+lib/history*.ts       filled forms: record, store (Postgres or memory), client, dashboard hook
 lib/profile-store.ts  synced facts: Postgres through Neon's driver, or in memory for tests
 lib/eval.ts           simulated applicant, judge schema, scoring, aggregation (pure, tested)
 lib/agent-errors.ts   microphone / network / refused / setup errors in plain words (pure, tested)
@@ -152,7 +151,7 @@ When something fails live, the Talk panel says why and offers the way out: a blo
 ## Deploy (Vercel)
 
 1. Push the repo to GitHub and import it in Vercel. Framework preset: Next.js. The defaults are right.
-2. In **Settings, Environment Variables**, add for Production and Preview: `GROQ_API_KEY`, `ELEVENLABS_AGENT_ID`, `ELEVENLABS_API_KEY`, and optionally `GROQ_MODEL`. For Google sign-in also add `NEON_AUTH_BASE_URL` and `NEON_AUTH_COOKIE_SECRET` (and `DATABASE_URL` to sync facts), and add your domain under Neon Auth's trusted domains. For private forms add `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` and `AUTH_SECRET`, and register `https://your-domain/api/forms/callback` as an authorised redirect URI in Google Cloud. Keys go in the Vercel dashboard only: never commit them, never prefix them with `NEXT_PUBLIC_`.
+2. In **Settings, Environment Variables**, add for Production and Preview: `GROQ_API_KEY`, `ELEVENLABS_AGENT_ID`, `ELEVENLABS_API_KEY`, and optionally `GROQ_MODEL`. For Google sign-in also add `NEON_AUTH_BASE_URL` and `NEON_AUTH_COOKIE_SECRET` (and `DATABASE_URL` to sync facts), and add your domain under Neon Auth's trusted domains.  Keys go in the Vercel dashboard only: never commit them, never prefix them with `NEXT_PUBLIC_`.
 3. Deploy, then open `/api/health`. Expect `{"llm":true,"voice":true,"voicePrivate":true}`.
 4. `data/eval.json` is committed, so `/scoreboard` has numbers on the deployed site (`next.config.ts` makes sure the file ships with the server). To refresh it, run `npm run eval` locally and commit the file.
 
@@ -186,20 +185,22 @@ Forms read in the extension use the saved profile and the facts from every earli
 
 ## Browser extension (side panel)
 
-`extension/` is a Chrome extension that reads the form on any page (Google Forms, Microsoft Forms, a company's own site) and fills it in after approval. It opens in Chrome's side panel, frames this app, and talks to it with checked `postMessage`s. Source `page` in `/api/ingest` turns the questions it read into an interview. See `extension/README.md` for install, permissions and limits. `npm run test:extension` loads it into real Chrome and reads and fills two fixture pages. Not yet tried: a real Google or Microsoft form, and the microphone inside the side panel.
+`extension/` is a Chrome extension that reads the form on any page (Google Forms, Microsoft Forms, a company's own site) and fills it in after approval. It opens in Chrome's side panel, frames this app, and talks to it with checked `postMessage`s. Source `page` in `/api/ingest` turns the questions it read into an interview. See `extension/README.md` for install, permissions and limits. Not yet tried: a real Google or Microsoft form, and the microphone inside the side panel.
 
-## Google sign-in
+## Google sign-in, saved facts and your forms
 
 Optional. The app works without it.
 
-**Sign-in is Neon Auth** (managed Better Auth, in the same Neon project as the database). `lib/auth/server.ts` creates it, `app/api/auth/[...path]` proxies its API, and `lib/identity.ts` says who is signed in. Google works at once with Neon's shared dev credentials (the consent screen then shows Neon's name). For production add your own Google client in Neon's Auth settings. Signed in, the user can:
+**Sign-in is Neon Auth** (managed Better Auth, in the same Neon project as the database). `lib/auth/server.ts` creates it, `app/api/auth/[...path]` proxies its API, `proxy.ts` finishes the Google round trip, and `lib/identity.ts` says who is signed in. Google works at once with Neon's shared dev credentials (the consent screen then shows Neon's name). For production add your own Google client in Neon's Auth settings.
 
-1. **Sync saved facts.** With a database (`DATABASE_URL`) and a switch the user controls (off by default), saved facts and their quotes also live in their account, keyed by their Neon Auth user id, so every device has them. The server keeps the newest fact per question, so a stale device cannot wipe a newer one. The switch, "Delete what is stored in my account" and Forget all sit in the account menu and the review screen.
-2. **Connect Google Forms and read private forms.** Neon Auth's sign-in cannot ask Google for extra permissions, so this is a second, separate consent with a Google client of your own (`GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, plus `AUTH_SECRET`). It is a small OAuth code flow with PKCE written by hand (`lib/auth.ts`, `app/api/forms/*`). The read-only scope is `forms.body.readonly`, and Google only allows it for forms the account owns or can edit, so the user pastes the form's edit link (ending in `/edit`). The Google tokens live in one AES-GCM encrypted `HttpOnly` cookie that only works for the Neon user who made it; they never reach the browser or the database. A form someone else owns and you only fill in still has to be public or pasted as text.
+With a database (`DATABASE_URL`) two things are kept in the account whenever the person is signed in, always, with no switch:
 
-State-changing routes also check the `Origin` header. Setup steps are on `/setup`, step 06.
+1. **Saved facts**, with the words they came from, keyed by their Neon Auth user id, so every device has them. The server keeps the newest fact per question (`/api/profile`, `lib/profile-store.ts`).
+2. **Every form they approve**, with its questions and their answers (`/api/history`, `lib/history*.ts`, table `filled_forms`). The **Dashboard** (account menu, or the landing nav) lists them and opens each one. Forms are also kept on the device, so signed out they still show; signing in uploads them. Onboarding and the demos are not recorded, and only the form's origin and path are kept, not its query string.
 
-Privacy: with sync off nothing about the user is stored by Apply करो beyond the sign-in itself (Neon Auth keeps the account). With sync on, the facts and their quotes are in the database you configure. Turning sync off does not delete what is stored: use the delete button.
+The account menu (photo) holds Your profile, Dashboard, Delete what is in my account, and Log out. State-changing routes also check the `Origin` header. Setup steps are on `/setup`, step 06.
+
+Privacy: signed out, nothing about the person is stored by Apply करो beyond the sign-in itself (Neon Auth keeps the account). Signed in, their facts and filled forms (answers included) are in the database you configure.
 
 ## Environment
 
@@ -213,8 +214,6 @@ Copy `.env.example` to `.env.local`.
 | `GROQ_MODEL` | Optional: defaults to `openai/gpt-oss-120b` |
 | `NEON_AUTH_BASE_URL`, `NEON_AUTH_COOKIE_SECRET` | Optional: Google sign-in through Neon Auth. The secret is 32 or more random characters |
 | `GITHUB_CLIENT_ID` | Optional: connect a GitHub account (device flow, no secret). Enable Device Flow on the OAuth app |
-| `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `AUTH_SECRET` | Optional: connect Google Forms to read private forms. `AUTH_SECRET` is 32 or more random characters |
-| `APP_URL` | Optional: the public address, when behind a proxy |
 | `DATABASE_URL` | Optional: a Postgres connection string, to sync saved facts |
 | `GITHUB_TOKEN` | Optional: a GitHub token with no scopes, to raise GitHub's rate limit for onboarding |
 
@@ -228,7 +227,7 @@ Copy `.env.example` to `.env.local`.
 
 **Extras: done.** Resume where you left off, time saved on the hand-over screen, a second demo form (a kirana owner's working-capital loan, spoken in Hindi), the answer-strength meter, and resume upload (PDF, text or paste). `tests/features.test.ts` covers them.
 
-**Google sign-in: done.** Sign in with Google through Neon Auth, optional synced facts in the user's account, and Google Forms as a second consent so private forms can be read through the Forms API. `tests/auth.test.ts` covers it, including two devices syncing through the real route handlers.
+**Google sign-in: done.** Sign in with Google through Neon Auth, saved facts and every approved form kept in the account, and a Dashboard of filled forms.
 
 **Not done:** a visible-browser fill for forms that can't be prefilled by link, an India data residency option, a real Vercel deploy.
 
@@ -239,5 +238,5 @@ Built from the installed SDK types and docs; the Groq calls were exercised for r
 - A real Google Form (the parser is tested on a synthetic page with the documented layout; paste mode is the fallback). The prefilled-link builder is unit-tested but not opened against a live form.
 - A live ElevenLabs agent confirming saved facts from an earlier form. (Dynamic variables, the three tool names, Hindi in text and Hindi speech recognition on synthetic speech were exercised in Phase 3: see above.)
 - Resume upload: a real PDF went through the real route and real Groq extraction (on `openai/gpt-oss-20b`, because the 120b daily token quota had been spent by eval runs), and the quote check dropped a quote that was stitched across two sentences. The browser flow ran with the facts route mocked for the same reason. Not tried: a scanned PDF, a resume in Hindi, a two-column layout.
-- Google sign-in: Neon Auth is provisioned and the page reaches Google's sign-in through it (checked in a browser), but a full sign-in with a real Google account has not been completed here. Synced facts: the store's SQL was checked against the real Neon database; the sync routes with a signed-in Neon session were tested with the identity mocked. Connecting Forms: tested with a mocked token endpoint (state and PKCE checks, tokens tied to the user, a forged cookie), not with a real Google client. Not tried: the Forms API against a real form (the response shape and the hex question id to `entry.NNN` mapping come from Google's documentation).
+- Google sign-in: Neon Auth is provisioned and the page reaches Google's sign-in through it (checked in a browser), but a full sign-in with a real Google account has not been completed here. The account routes (facts, forms) were tested with the identity mocked, and the stores' SQL against the real Neon database for facts only: the `filled_forms` table has not been run against a live database.
 - Real voices: Hindi speech from a person, accents and noise, and how the agent's voice sounds. The microphone path in the browser was checked only as far as the blocked-microphone state.

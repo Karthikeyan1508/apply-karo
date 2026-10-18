@@ -9,7 +9,7 @@ import {
 } from "react"
 
 /** Home is the interview start (landing, or the side panel's start screen). Profile and onboarding are the two profile screens. */
-export type View = "home" | "onboarding" | "profile"
+export type View = "home" | "onboarding" | "profile" | "dashboard"
 /** Where onboarding opens: the welcome, or straight at the sources when adding another one. */
 export type OnboardingStart = "welcome" | "sources"
 

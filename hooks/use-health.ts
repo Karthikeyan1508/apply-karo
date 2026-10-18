@@ -13,7 +13,7 @@ export function useHealth(): Health | null {
       .then((r) => r.json() as Promise<Health>)
       .then((h) => alive && setHealth(h))
       .catch(
-        () => alive && setHealth({ llm: false, voice: false, voicePrivate: false, auth: false, forms: false, sync: false, github: false })
+        () => alive && setHealth({ llm: false, voice: false, voicePrivate: false, auth: false, sync: false, github: false })
       )
     return () => {
       alive = false

@@ -1,4 +1,3 @@
-import { formsConfig } from "@/lib/auth"
 import { neonAuth } from "@/lib/auth/server"
 import { githubClientId } from "@/lib/github-device"
 import { llmConfigured } from "@/lib/llm"
@@ -12,7 +11,6 @@ export async function GET() {
     voice: Boolean(process.env.ELEVENLABS_AGENT_ID),
     voicePrivate: Boolean(process.env.ELEVENLABS_API_KEY),
     auth,
-    forms: auth && Boolean(formsConfig()),
     sync: auth && Boolean(profileStore()),
     github: Boolean(githubClientId()),
   }

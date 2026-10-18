@@ -14,8 +14,7 @@
     "configure:agent": "node scripts/configure-agent.ts",
     "smoke:agent": "node scripts/smoke-agent.ts",
     "eval": "node scripts/eval.ts",
-    "check:speech": "node scripts/speech-check.ts",
-    "test:extension": "node extension/test/e2e.mjs"
+    "check:speech": "node scripts/speech-check.ts"
   },
   "dependencies": {
     "@base-ui/react": "^1.9.0",
@@ -43,7 +42,6 @@
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "16.4.0",
-    "playwright-core": "^1.64.1",
     "prettier": "^3.9.10",
     "prettier-plugin-tailwindcss": "^0.8.1",
     "tailwindcss": "^4",

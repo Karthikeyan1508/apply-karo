@@ -5,7 +5,7 @@ import { DownloadIcon, PlusIcon, Trash2Icon, UploadIcon } from "lucide-react"
 import { useRef, useState } from "react"
 import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
-import { useSyncEnabled } from "@/hooks/use-auth"
+import { useSyncing } from "@/hooks/use-auth"
 import { useProfileItems } from "@/hooks/use-profile-items"
 import { factId, mergeNewest } from "@/lib/core"
 import {
@@ -59,7 +59,7 @@ export function ProfileScreen() {
   const all = useProfileItems()
   // What the resume gave is kept for filling forms but not listed or edited here.
   const facts = shown(all)
-  const syncing = useSyncEnabled()
+  const syncing = useSyncing()
   const fileInput = useRef<HTMLInputElement>(null)
   const [confirmAll, setConfirmAll] = useState(false)
 

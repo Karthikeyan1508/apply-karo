@@ -1,10 +1,9 @@
 "use client"
 
 import { useEffect, useSyncExternalStore } from "react"
-import { PROFILE_EVENT, syncEnabled } from "@/lib/profile"
 import type { AuthInfo } from "@/lib/types"
 
-const OFF: AuthInfo = { configured: false, formsAvailable: false, sync: false, user: null, forms: false }
+const OFF: AuthInfo = { configured: false, sync: false, user: null }
 let current: AuthInfo | null = null
 let inflight: Promise<void> | null = null
 const listeners = new Set<() => void>()
@@ -35,12 +34,8 @@ export function useAuth(): AuthInfo | null {
   return useSyncExternalStore(subscribe, () => current, () => null)
 }
 
-function subscribeProfile(onChange: () => void) {
-  window.addEventListener(PROFILE_EVENT, onChange)
-  return () => window.removeEventListener(PROFILE_EVENT, onChange)
-}
-
-/** Whether this device keeps its saved facts in the signed-in account too. Off until the user turns it on. */
-export function useSyncEnabled(): boolean {
-  return useSyncExternalStore(subscribeProfile, syncEnabled, () => false)
+/** Saved facts and filled forms are kept in the account whenever this person is signed in and a database exists. */
+export function useSyncing(): boolean {
+  const auth = useAuth()
+  return Boolean(auth?.user && auth.sync)
 }
