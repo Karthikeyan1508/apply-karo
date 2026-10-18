@@ -50,7 +50,7 @@ export type Action =
   /** Facts found mid-call (from a repo the person mentioned) for slots that are still empty. */
   | { type: "prefill"; fills: PrefillFill[] }
   /** Move the project question through picking repos, reading them, and what is left to ask. */
-  | { type: "projects"; choice: NonNullable<Session["projectChoice"]> }
+  | { type: "projects"; choice: NonNullable<Session["projectChoice"]>; skip?: string[] }
   | { type: "hydrate"; saved: SavedState; savedAt: number }
   | { type: "approve" }
   | { type: "reopen" }
@@ -238,7 +238,23 @@ export function reduce(state: InterviewState, action: Action): InterviewState {
         ? { ...state, phase: "approved" }
         : state
     case "projects":
-      return state.session ? { ...state, session: { ...state.session, projectChoice: action.choice } } : state
+      return state.session
+        ? {
+            ...state,
+            session: {
+              ...state.session,
+              projectChoice: action.choice,
+              // Parts the repos did not say and are not worth asking: left out of the interview.
+              fields: action.skip
+                ? state.session.fields.map((f) =>
+                    f.id === action.choice.fieldId
+                      ? { ...f, slots: f.slots.map((s) => (action.skip!.includes(s.name) && s.value === null ? { ...s, skipped: true } : s)) }
+                      : f
+                  )
+                : state.session.fields,
+            },
+          }
+        : state
     case "prefill":
       return state.session ? { ...state, session: applyPrefill(state.session, action.fills) } : state
     case "reopen":

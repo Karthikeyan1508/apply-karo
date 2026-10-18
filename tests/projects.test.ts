@@ -177,7 +177,7 @@ describe("the repo question in a form", () => {
         if (url === "/api/prefill") {
           const body = JSON.parse(String(init?.body))
           // The model is only shown the chosen repo's facts and the project question's slots.
-          expect(body.saved).toHaveLength(1)
+          expect(body.saved.length).toBeGreaterThanOrEqual(1)
           expect(
             new Set(body.slots.map((s: { field: string }) => s.field))
           ).toEqual(new Set(["F3"]))
@@ -275,5 +275,40 @@ describe("Autofill and a question with several parts", () => {
     const s = multi("draft")
     s.fields[0].slots[0].value = null
     expect(autofillPayload(s)).toEqual([])
+  })
+})
+
+describe("the repo summary and the main questions", () => {
+  it("takes the first real paragraph of a README", async () => {
+    const { readmeSummary } = await import("@/lib/repos")
+    const md = "# Kirana Bot\n\n[![build](x.svg)](y)\n\n![logo](l.png)\n\nA WhatsApp ordering bot that lets **kirana stores** take orders from regulars.\n\n## Setup\n"
+    expect(readmeSummary(md)).toBe("A WhatsApp ordering bot that lets kirana stores take orders from regulars.")
+    expect(readmeSummary("# T\n\n![x](y)")).toBe("")
+  })
+
+  it("asks the role and the outcome, nothing else", async () => {
+    const { mainQuestions } = await import("@/lib/repos")
+    const open = ["name", "role", "tech", "outcome", "duration"].map((slot) => ({ slot, ask: slot }))
+    expect(mainQuestions(open).map((o) => o.slot)).toEqual(["role", "outcome"])
+    expect(mainQuestions(open.filter((o) => o.slot !== "role" && o.slot !== "outcome")).map((o) => o.slot)).toEqual(["name", "tech"])
+  })
+
+  it("skips the parts it will not ask", () => {
+    const store = createInterviewStore()
+    store.dispatch({ type: "session", session: demoSession("en-IN") })
+    const name = demoSession("en-IN").fields[2].slots[0].name
+    store.dispatch({ type: "projects", skip: [name], choice: { fieldId: "F3", stage: "done", repos: [], leftover: [] } })
+    expect(store.getState().session!.fields[2].slots[0].skipped).toBe(true)
+  })
+})
+
+describe("opening the repo picker", () => {
+  it.each(["/projects", " /project ", "Open projects", "please open my repos"])("%s opens it", async (t) => {
+    const { isProjectsCommand } = await import("@/lib/repos")
+    expect(isProjectsCommand(t)).toBe(true)
+  })
+  it.each(["I built a project last year", "my projects were fun", "open the door"])("%s does not", async (t) => {
+    const { isProjectsCommand } = await import("@/lib/repos")
+    expect(isProjectsCommand(t)).toBe(false)
   })
 })

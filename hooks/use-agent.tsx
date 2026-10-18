@@ -19,7 +19,8 @@ import {
 import { toast } from "sonner"
 import { classifyAgentError, type AgentError } from "@/lib/agent-errors"
 import { agentLanguage, buildDynamicVariables, openSlotsText } from "@/lib/core"
-import { briefing, relateProject } from "@/lib/github-client"
+import { briefing, relateProject, withProjectChoice } from "@/lib/github-client"
+import { isProjectsCommand } from "@/lib/repos"
 import { loadProfile } from "@/lib/profile"
 import { knownNote } from "@/lib/profile-digest"
 import { demoSteps } from "@/lib/demo"
@@ -216,6 +217,18 @@ function AgentInner({ children }: { children: ReactNode }) {
   const seenRepos = useRef(new Set<string>())
 
   /** The person said something: if it is about one of their GitHub repos, bring that repo's facts into the call. */
+  /** Show the repo picker for the project question, only when asked for. */
+  const openProjects = useCallback(
+    (text: string) => {
+      const s = store.getState().session
+      if (!s || !isProjectsCommand(text)) return
+      const next = withProjectChoice(s)
+      if (next.projectChoice) store.dispatch({ type: "projects", choice: next.projectChoice })
+      else toast.message("No project question to answer here, or GitHub is not connected.")
+    },
+    [store]
+  )
+
   const relate = useCallback(
     async (text: string) => {
       const session = store.getState().session
@@ -301,7 +314,10 @@ function AgentInner({ children }: { children: ReactNode }) {
         },
         onMessage: (m: { role: "user" | "agent"; message: string }) => {
           store.dispatch({ type: "utterance", role: m.role, text: m.message })
-          if (m.role === "user") void relate(m.message)
+          if (m.role === "user") {
+            void relate(m.message)
+            openProjects(m.message)
+          }
         },
         onError: (message: string) => {
           setError(classifyAgentError(message))
@@ -318,7 +334,7 @@ function AgentInner({ children }: { children: ReactNode }) {
         controls.startSession({ signedUrl: info.signedUrl, ...common })
       }
     },
-    [controls, relate, runDemo, stopAll, store, tools]
+    [controls, relate, openProjects, runDemo, stopAll, store, tools]
   )
 
   const stop = useCallback(() => {
@@ -331,11 +347,13 @@ function AgentInner({ children }: { children: ReactNode }) {
     (text: string) => {
       const clean = text.trim()
       if (!clean || channel === "demo") return
+      // "/projects" is a command for the app, not something to tell the interviewer.
+      if (/^\/projects?\b/i.test(clean)) return void openProjects(clean)
       // The guard checks quotes against what the user said, so typed text must be recorded too.
       store.dispatch({ type: "utterance", role: "user", text: clean })
       controls.sendUserMessage(clean)
     },
-    [channel, controls, store]
+    [channel, controls, store, openProjects]
   )
 
   const voiceStatus: AgentStatus =

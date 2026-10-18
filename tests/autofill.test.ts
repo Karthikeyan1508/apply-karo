@@ -71,3 +71,15 @@ describe("what the resume gave", () => {
     })
   })
 })
+
+describe("the same page read again", () => {
+  it("keeps what was answered in the interview and types it", async () => {
+    const { carryAnswers } = await import("@/lib/page-form")
+    const session = (fields: ReturnType<typeof field>[]): Session => ({ ...demoSession("en-IN"), source: "page", fields })
+    const old = session([field("F1", "0:b1", [{ value: "Kirana bot", quote: "Kirana bot" }])])
+    const fresh = session([field("F1", "0:b1", [{ value: null }])])
+    const out = carryAnswers(old, fresh)
+    expect(autofillPayload(out)).toEqual([{ ref: "0:b1", value: "Kirana bot" }])
+    expect(carryAnswers(null, fresh)).toBe(fresh)
+  })
+})

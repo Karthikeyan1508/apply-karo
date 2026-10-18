@@ -36,7 +36,6 @@ import { prefillFromDocument, uploadDocument, wordsIn, type Doc } from "@/lib/do
 import { ago, clearSaved } from "@/lib/persist"
 import { CAPTURE_SNIPPET } from "@/lib/gforms"
 import { forgetProfile, loadProfile, prefillFromProfile } from "@/lib/profile"
-import { withProjectChoice } from "@/lib/github-client"
 import { checkReadiness } from "@/lib/readiness"
 import type { ApiError, Health, Session } from "@/lib/types"
 import { cn } from "@/lib/utils"
@@ -175,7 +174,7 @@ function SourceCard() {
       }
       // Before anything is filled: is each question understood, and is there enough to answer it?
       if (health?.llm) session = await checkReadiness(session, loadProfile())
-      store.dispatch({ type: "session", session: withProjectChoice(session) })
+      store.dispatch({ type: "session", session })
     } catch {
       setError({ code: "NETWORK", message: "Couldn't reach the server. Is it running?" })
     } finally {

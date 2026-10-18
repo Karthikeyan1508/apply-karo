@@ -1,6 +1,6 @@
 import type { PrefillFill } from "./core"
 import { prefillMatches } from "./profile"
-import { isProjectQuestion, lastPage, matchRepos, parseRepos, repoCorpus, repoDigest, type Repo, type RepoDetail } from "./repos"
+import { isProjectQuestion, lastPage, matchRepos, parseRepos, repoCorpus, readmeSummary, repoDigest, type Repo, type RepoDetail } from "./repos"
 import type { ProfileItem, Session } from "./types"
 
 /**
@@ -10,7 +10,7 @@ import type { ProfileItem, Session } from "./types"
 
 const LINK_KEY = "bolbharo.github.v1"
 const REPOS_KEY = "bolbharo.repos.v1"
-const FACTS_KEY = "bolbharo.repofacts.v1"
+const FACTS_KEY = "bolbharo.repofacts.v2"
 export const GITHUB_EVENT = "bolbharo:github"
 const API = "https://api.github.com"
 const notify = () => window.dispatchEvent(new Event(GITHUB_EVENT))
@@ -175,7 +175,7 @@ export async function repoDetail(link: GithubLink, repo: Repo): Promise<RepoDeta
 
 // ---------- Facts about a repo, on demand ----------
 
-type FactCache = Record<string, { at: number; facts: ProfileItem[] }>
+type FactCache = Record<string, { at: number; facts: ProfileItem[]; summary?: string }>
 const FACT_TTL = 24 * 3600 * 1000
 
 /** Facts the model can quote from one repo's own text. Read once per day per repo, then reused. */
@@ -183,14 +183,29 @@ export async function repoFacts(link: GithubLink, repo: Repo, now = Date.now()):
   const cache = read<FactCache>(FACTS_KEY) ?? {}
   const hit = cache[repo.full]
   if (hit && now - hit.at < FACT_TTL) return hit.facts
-  const text = repoCorpus(await repoDetail(link, repo))
+  const detail = await repoDetail(link, repo)
+  const text = repoCorpus(detail)
   const { facts } = await api<{ facts: ProfileItem[] }>("/api/onboard/extract", {
     sources: [{ name: `github:${repo.name}`.slice(0, 40), text }],
   })
   // Every fact keeps the repo as its source, so the profile and the review show where it came from.
-  const tagged = facts.map((f) => ({ ...f, source: `github:${repo.name}`.slice(0, 60), confirmed: false }))
-  write(FACTS_KEY, { ...cache, [repo.full]: { at: now, facts: tagged } })
+  const source = `github:${repo.name}`.slice(0, 60)
+  const summary = readmeSummary(detail.readme) || repo.description
+  const stack = [...detail.languages, ...repo.topics].filter((v, i, a) => a.indexOf(v) === i).join(", ")
+  // Facts read straight off GitHub, so a project's name, stack and summary never depend on the model finding them.
+  const direct: ProfileItem[] = [
+    { label: `Project name: ${repo.name}`, slot: "answer", value: repo.name.replace(/[-_]+/g, " ").replace(/\b\w/g, (c) => c.toUpperCase()), quote: repo.name, key: "project_name" },
+    ...(stack ? [{ label: `Technologies: ${repo.name}`, slot: "answer", value: stack, quote: detail.languages.length ? `Languages: ${detail.languages.join(", ")}` : `Topics: ${repo.topics.join(", ")}`, key: "project_tech" }] : []),
+    ...(summary ? [{ label: `What it does: ${repo.name}`, slot: "answer", value: summary.replace(/…$/, ""), quote: summary.replace(/…$/, "").slice(0, 60), key: "project_summary" }] : []),
+  ].map((f) => ({ ...f, form: "GitHub", savedAt: Date.now() }))
+  const tagged = [...facts, ...direct].map((f) => ({ ...f, source, confirmed: false }))
+  write(FACTS_KEY, { ...cache, [repo.full]: { at: now, facts: tagged, summary } })
   return tagged
+}
+
+/** What the repo's README says it is, read with its facts. Falls back to the GitHub description. */
+export function repoSummary(repo: Repo): string {
+  return read<FactCache>(FACTS_KEY)?.[repo.full]?.summary || repo.description
 }
 
 // ---------- Relating what the person says to a repo ----------

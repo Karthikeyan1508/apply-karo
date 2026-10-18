@@ -9,9 +9,9 @@ import { Input } from "@/components/ui/input"
 import { useAgent } from "@/hooks/use-agent"
 import { useInterview, useInterviewStore } from "@/hooks/use-interview"
 import { openSlots } from "@/lib/core"
-import { loadRepos, projectFills } from "@/lib/github-client"
+import { loadRepos, projectFills, repoSummary } from "@/lib/github-client"
 import { autofillPayload } from "@/lib/page-form"
-import { rankRepos, type Repo } from "@/lib/repos"
+import { mainQuestions, rankRepos, type Repo } from "@/lib/repos"
 import { cn } from "@/lib/utils"
 
 const MAX_PICKS = 3
@@ -50,10 +50,16 @@ export function ProjectPicker({ className }: { className?: string }) {
       const fills = await projectFills(session, choice.fieldId, chosen)
       store.dispatch({ type: "prefill", fills })
       const now = store.getState().session ?? session
-      const leftover = openSlots(now)
-        .filter((o) => o.fieldId === choice.fieldId)
-        .map((o) => o.ask)
-      store.dispatch({ type: "projects", choice: { ...choice, stage: "done", repos: picked, leftover } })
+      const open = openSlots(now).filter((o) => o.fieldId === choice.fieldId)
+      // Only the main questions are asked; the other parts are left out rather than interrogating the person.
+      const ask = mainQuestions(open)
+      const skip = open.filter((o) => !ask.includes(o)).map((o) => o.slot)
+      const summaries = chosen.map((r) => ({ repo: r.name, text: repoSummary(r) })).filter((s) => s.text)
+      store.dispatch({
+        type: "projects",
+        skip,
+        choice: { ...choice, stage: "done", repos: picked, leftover: ask.map((o) => o.ask), summaries },
+      })
     } catch {
       toast.error("Couldn't read those repos. Try again, or skip and describe it yourself.")
       store.dispatch({ type: "projects", choice: { ...choice, stage: "ask", repos: [] } })
@@ -148,9 +154,14 @@ export function ProjectPicker({ className }: { className?: string }) {
       {choice.stage === "done" && (
         <>
           <p className="mt-1.5 leading-snug font-semibold">Used {names}.</p>
+          {choice.summaries?.map((s) => (
+            <p key={s.repo} className="mt-1.5 text-xs leading-snug">
+              <span className="font-semibold">{s.repo}:</span> <span className="text-muted-foreground">{s.text}</span>
+            </p>
+          ))}
           <p className="mt-1 text-xs leading-snug text-muted-foreground">
             {choice.leftover.length
-              ? `The repos did not say: ${choice.leftover.join("; ")} I will ask you that.`
+              ? `I only need: ${choice.leftover.join("; ")}`
               : "That covers the question. Nothing more is needed."}
           </p>
           <div className="mt-3 flex flex-wrap gap-2">
