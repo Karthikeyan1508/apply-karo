@@ -6,6 +6,7 @@ import {
   ArrowRightIcon,
   CheckIcon,
   ClipboardPasteIcon,
+  DownloadIcon,
   FileTextIcon,
   Link2Icon,
   Loader2Icon,
@@ -520,6 +521,31 @@ const HOW = [
   },
 ]
 
+const EXTENSION_ZIP = "https://github.com/Karthikeyan1508/apply-karo/archive/refs/heads/main.zip"
+
+const EXTENSION_STEPS = [
+  {
+    n: "01",
+    title: "Download",
+    body: "Download the project ZIP and unzip it anywhere on your computer.",
+  },
+  {
+    n: "02",
+    title: "Add to Chrome",
+    body: "Open chrome://extensions, turn on Developer mode, then choose Load unpacked and select the extension folder.",
+  },
+  {
+    n: "03",
+    title: "Set the app address",
+    body: "Open Apply करो in Chrome, expand App address at the bottom, and paste this website’s address.",
+  },
+  {
+    n: "04",
+    title: "Fill a form",
+    body: "Open any application form, then choose Autofill for known details or Read this page for an interview.",
+  },
+]
+
 export function Landing() {
   const health = useHealth()
   const view = useView()
@@ -559,6 +585,9 @@ export function Landing() {
         <nav className="flex items-center gap-1 text-sm font-medium">
           <a href="#how" className="hidden px-4 py-2 whitespace-nowrap text-muted-foreground transition-colors hover:text-foreground sm:block">
             How it works
+          </a>
+          <a href="#extension" className="hidden px-4 py-2 whitespace-nowrap text-muted-foreground transition-colors hover:text-foreground md:block">
+            Chrome extension
           </a>
           <button
             type="button"
@@ -651,6 +680,43 @@ export function Landing() {
               </li>
             ))}
           </ol>
+        </section>
+
+        <section id="extension" className="mx-auto max-w-7xl scroll-mt-6 px-6 py-24">
+          <div className="grid gap-8 lg:grid-cols-[0.8fr_1.2fr] lg:items-end">
+            <div>
+              <p className="label-caps text-muted-foreground">Chrome extension</p>
+              <h2 className="display mt-3 text-5xl uppercase sm:text-6xl">
+                Use it on <span className="text-brand">any form.</span>
+              </h2>
+              <p className="mt-5 max-w-md text-[15px] leading-relaxed text-muted-foreground">
+                The extension reads the form already open in Chrome, interviews you for what is missing, and fills only the answers you approve.
+              </p>
+              <a
+                href={EXTENSION_ZIP}
+                className="mt-7 inline-flex h-11 items-center gap-2 border border-foreground bg-foreground px-5 text-sm font-semibold text-background transition-colors hover:bg-transparent hover:text-foreground"
+              >
+                <DownloadIcon className="size-4" /> Download extension
+              </a>
+              <p className="mt-3 text-xs text-muted-foreground">Chrome Web Store version coming later. For now, install it in Developer mode.</p>
+            </div>
+            <ol className="grid border sm:grid-cols-2">
+              {EXTENSION_STEPS.map((step, index) => (
+                <li
+                  key={step.n}
+                  className={cn(
+                    "border-b p-6 last:border-b-0 sm:border-r",
+                    index % 2 === 1 && "sm:border-r-0",
+                    index > 1 && "sm:border-b-0"
+                  )}
+                >
+                  <span className="label-caps text-brand">{step.n}</span>
+                  <h3 className="display mt-3 text-2xl uppercase">{step.title}</h3>
+                  <p className="mt-3 text-sm leading-relaxed text-muted-foreground">{step.body}</p>
+                </li>
+              ))}
+            </ol>
+          </div>
         </section>
       </main>
 
