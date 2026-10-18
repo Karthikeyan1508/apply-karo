@@ -109,6 +109,7 @@ export function onboardingSession(
       edited: false,
       flags: [],
     })),
+    onboardingPurpose: "gaps",
   }
 }
 
@@ -129,18 +130,26 @@ export function factsFromOnboarding(
     const s = f.slots[0]
     if (!s || s.value === null || s.fromProfile || !s.quote) return []
     const { key, sensitive } = gapForField(f)
+    const grill = f.grill
     return [
       {
-        label: f.label,
+        label: grill ? `Decision: ${f.label}` : f.label,
         slot: "answer",
         value: s.value,
         quote: s.quote,
         form: "Your profile",
         savedAt: now,
-        key,
+        key: grill ? `${grill.subjectKey}:${grill.category}` : key,
         source: "interview",
         confirmed: true,
-        sensitive,
+        sensitive: grill ? false : sensitive,
+        ...(grill
+          ? {
+              kind: "decision" as const,
+              subjectKey: grill.subjectKey,
+              category: grill.category,
+            }
+          : {}),
       },
     ]
   })

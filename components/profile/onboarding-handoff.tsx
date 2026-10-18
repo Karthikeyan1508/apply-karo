@@ -5,6 +5,7 @@ import { PanelHeader } from "@/components/workspace/panel-header"
 import { useAgent } from "@/hooks/use-agent"
 import { useInterviewStore } from "@/hooks/use-interview"
 import { useProfileItems } from "@/hooks/use-profile-items"
+import { findGaps, onboardingSession } from "@/lib/profile-gaps"
 import { cn } from "@/lib/utils"
 import { useView } from "./view"
 
@@ -14,11 +15,19 @@ export function OnboardingHandoff({ className }: { className?: string }) {
   const agent = useAgent()
   const view = useView()
   const facts = useProfileItems()
+  const session = store.getState().session
+  const gaps = session?.onboardingPurpose === "grill" ? findGaps(facts) : []
 
   const finish = (next: "profile" | "home") => {
     agent.stop()
     store.dispatch({ type: "reset" })
     view.open(next)
+  }
+
+  const continueBasics = () => {
+    if (!gaps.length) return finish("profile")
+    agent.stop()
+    store.dispatch({ type: "session", session: onboardingSession(gaps) })
   }
 
   return (
@@ -33,11 +42,30 @@ export function OnboardingHandoff({ className }: { className?: string }) {
           behind each one. Matching forms now start filled in, and you only get
           asked what is still missing.
         </p>
+        {session?.onboardingPurpose === "grill" && gaps.length > 0 && (
+          <p className="max-w-md text-sm leading-relaxed text-muted-foreground">
+            Want to add the remaining basics, like contact details and
+            preferences? You can skip any of them.
+          </p>
+        )}
         <p className="mono-caps tabular-nums">
           {facts.length} saved in your profile
         </p>
         <div className="flex flex-wrap gap-2">
+          {session?.onboardingPurpose === "grill" && gaps.length > 0 && (
+            <Button
+              className="h-11 px-5 font-semibold"
+              onClick={continueBasics}
+            >
+              Add profile basics
+            </Button>
+          )}
           <Button
+            variant={
+              session?.onboardingPurpose === "grill" && gaps.length > 0
+                ? "outline"
+                : "default"
+            }
             className="h-11 px-5 font-semibold"
             onClick={() => finish("profile")}
           >

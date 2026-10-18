@@ -1,5 +1,6 @@
 import type { Doc } from "./document"
 import { groundFacts, type RawFact, type SourceText } from "./profile-ground"
+import { validGrillQuestions, type GrillQuestion } from "./profile-grill"
 import type { ApiError, ProfileItem } from "./types"
 
 export interface OnboardInputs {
@@ -19,6 +20,26 @@ export interface ReadResult {
   facts: ProfileItem[]
   /** Problems that do not stop the read, such as a GitHub user that was not found. Shown to the person. */
   notes: string[]
+}
+
+/** Build at most six source-aware questions from reviewed compact facts. */
+export async function readGrill(
+  facts: readonly ProfileItem[]
+): Promise<GrillQuestion[]> {
+  const compact = facts
+    .filter((f) => /^(project|experience):/.test(f.key ?? ""))
+    .slice(0, 24)
+    .map(({ key, label, value, source }) => ({
+      key: key ?? "",
+      label,
+      value,
+      source,
+    }))
+  if (!compact.length) return []
+  const res = await post<{ questions: GrillQuestion[] }>("/api/onboard/grill", {
+    facts: compact,
+  })
+  return validGrillQuestions(res.questions, facts)
 }
 
 const shortName = (name: string) =>

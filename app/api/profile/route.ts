@@ -17,20 +17,47 @@ const Item = z.object({
   confirmed: z.boolean().optional(),
   sensitive: z.boolean().optional(),
   autofill: z.boolean().optional(),
+  kind: z.literal("decision").optional(),
+  subjectKey: z.string().max(80).optional(),
+  category: z
+    .enum([
+      "ownership",
+      "decision",
+      "tradeoff",
+      "impact",
+      "outcome",
+      "motivation",
+    ])
+    .optional(),
 })
 const Body = z.object({ items: z.array(Item).max(500) })
 
 /** The signed-in user's synced facts. Every call needs a session and a configured database. */
 async function target() {
   const user = await currentUser()
-  if (!user) throw new AppError("NOT_SIGNED_IN", 401, "Sign in with Google to sync your saved facts.")
+  if (!user)
+    throw new AppError(
+      "NOT_SIGNED_IN",
+      401,
+      "Sign in with Google to sync your saved facts."
+    )
   const store = profileStore()
-  if (!store) throw new AppError("SYNC_NOT_CONFIGURED", 503, "Syncing needs a database. Add DATABASE_URL to .env.local.")
+  if (!store)
+    throw new AppError(
+      "SYNC_NOT_CONFIGURED",
+      503,
+      "Syncing needs a database. Add DATABASE_URL to .env.local."
+    )
   return { sub: user.id, store }
 }
 
 function sameSite(req: Request) {
-  if (!sameOrigin(req)) throw new AppError("FORBIDDEN", 403, "That request did not come from this site.")
+  if (!sameOrigin(req))
+    throw new AppError(
+      "FORBIDDEN",
+      403,
+      "That request did not come from this site."
+    )
 }
 
 const noStore = { headers: { "cache-control": "no-store" } }
@@ -38,7 +65,10 @@ const noStore = { headers: { "cache-control": "no-store" } }
 export async function GET() {
   try {
     const { sub, store } = await target()
-    return Response.json({ items: await guarded(() => store.get(sub)) }, noStore)
+    return Response.json(
+      { items: await guarded(() => store.get(sub)) },
+      noStore
+    )
   } catch (e) {
     return errorResponse(e)
   }
@@ -50,8 +80,16 @@ export async function PUT(req: Request) {
     sameSite(req)
     const { sub, store } = await target()
     const body = Body.safeParse(await req.json().catch(() => null))
-    if (!body.success) throw new AppError("BAD_REQUEST", 400, "The request was not in the expected shape.")
-    return Response.json({ items: await guarded(() => store.put(sub, body.data.items)) }, noStore)
+    if (!body.success)
+      throw new AppError(
+        "BAD_REQUEST",
+        400,
+        "The request was not in the expected shape."
+      )
+    return Response.json(
+      { items: await guarded(() => store.put(sub, body.data.items)) },
+      noStore
+    )
   } catch (e) {
     return errorResponse(e)
   }
