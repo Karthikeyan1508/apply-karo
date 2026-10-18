@@ -11,13 +11,21 @@ export function ProfileCard({ className }: { className?: string }) {
   const count = useProfileCount()
   const ready = count > 0
   return (
-    <section className={`panel flex flex-col gap-4 rounded-xl p-5 sm:flex-row sm:items-center sm:justify-between sm:p-6 ${className ?? ""}`} aria-labelledby="profile-card-title">
+    <section
+      className={`panel flex flex-col gap-4 rounded-xl p-5 sm:flex-row sm:items-center sm:justify-between sm:p-6 ${className ?? ""}`}
+      aria-labelledby="profile-card-title"
+    >
       <div className="min-w-0">
         <p className="label-caps text-muted-foreground">Your profile</p>
-        <h2 id="profile-card-title" className="display mt-2 text-3xl uppercase sm:text-4xl">
+        <h2
+          id="profile-card-title"
+          className="mt-2 text-3xl display uppercase sm:text-4xl"
+        >
           {ready ? (
             <>
-              Profile ready: <span className="text-brand tabular-nums">{count}</span> {count === 1 ? "fact" : "facts"}
+              Profile ready:{" "}
+              <span className="text-brand tabular-nums">{count}</span>{" "}
+              {count === 1 ? "fact" : "facts"}
             </>
           ) : (
             <>
@@ -34,15 +42,25 @@ export function ProfileCard({ className }: { className?: string }) {
       <div className="flex shrink-0 flex-wrap gap-2">
         {ready ? (
           <>
-            <Button className="h-11 px-5 font-semibold" onClick={() => view.open("profile")}>
+            <Button
+              className="h-11 px-5 font-semibold"
+              onClick={() => view.open("profile")}
+            >
               Open profile <ArrowRightIcon />
             </Button>
-            <Button variant="outline" className="h-11 px-4" onClick={() => view.open("onboarding", "sources")}>
+            <Button
+              variant="outline"
+              className="h-11 px-4"
+              onClick={() => view.open("onboarding", "sources")}
+            >
               Add a source
             </Button>
           </>
         ) : (
-          <Button className="h-11 px-5 font-semibold" onClick={() => view.open("onboarding", "welcome")}>
+          <Button
+            className="h-11 px-5 font-semibold"
+            onClick={() => view.open("onboarding", "welcome")}
+          >
             Set it up <ArrowRightIcon />
           </Button>
         )}

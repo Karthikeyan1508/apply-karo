@@ -7,7 +7,14 @@ import { Button } from "@/components/ui/button"
 import { useSyncEnabled } from "@/hooks/use-auth"
 import { useProfileItems } from "@/hooks/use-profile-items"
 import { factId, mergeNewest } from "@/lib/core"
-import { afterLocalChange, forgetProfile, loadProfile, parseProfileJson, profileJson, writeProfile } from "@/lib/profile"
+import {
+  afterLocalChange,
+  forgetProfile,
+  loadProfile,
+  parseProfileJson,
+  profileJson,
+  writeProfile,
+} from "@/lib/profile"
 import { SECTIONS, sectionOf } from "@/lib/profile-keys"
 import type { ProfileItem } from "@/lib/types"
 import { FactCard } from "./fact-card"
@@ -15,18 +22,28 @@ import { ProfileFrame } from "./onboarding"
 import { useView } from "./view"
 
 /** Write the facts here, and to the account when this device syncs. Returns nothing: the page says what happened. */
-async function persist(next: ProfileItem[], removed: boolean): Promise<boolean> {
+async function persist(
+  next: ProfileItem[],
+  removed: boolean
+): Promise<boolean> {
   if (!writeProfile(next)) {
-    toast.error("Couldn't save", { description: "This browser is blocking storage." })
+    toast.error("Couldn't save", {
+      description: "This browser is blocking storage.",
+    })
     return false
   }
   const synced = await afterLocalChange(removed)
-  if (synced === false) toast.warning("Saved on this device. Couldn't reach your account, so it will sync later.")
+  if (synced === false)
+    toast.warning(
+      "Saved on this device. Couldn't reach your account, so it will sync later."
+    )
   return true
 }
 
 function download(name: string, text: string) {
-  const url = URL.createObjectURL(new Blob([text], { type: "application/json" }))
+  const url = URL.createObjectURL(
+    new Blob([text], { type: "application/json" })
+  )
   const a = document.createElement("a")
   a.href = url
   a.download = name
@@ -44,36 +61,59 @@ export function ProfileScreen() {
 
   const update = (fact: ProfileItem, patch: Partial<ProfileItem>) => {
     const id = factId(fact)
-    void persist(facts.map((f) => (factId(f) === id ? { ...f, ...patch } : f)), false)
+    void persist(
+      facts.map((f) => (factId(f) === id ? { ...f, ...patch } : f)),
+      false
+    )
   }
 
   const remove = (fact: ProfileItem) => {
     const id = factId(fact)
-    void persist(facts.filter((f) => factId(f) !== id), true).then((ok) => ok && toast.success(`Removed ${fact.label}`))
+    void persist(
+      facts.filter((f) => factId(f) !== id),
+      true
+    ).then((ok) => ok && toast.success(`Removed ${fact.label}`))
   }
 
-  const groups = SECTIONS.map((s) => ({ s, items: facts.filter((f) => sectionOf(f) === s) })).filter((g) => g.items.length)
+  const groups = SECTIONS.map((s) => ({
+    s,
+    items: facts.filter((f) => sectionOf(f) === s),
+  })).filter((g) => g.items.length)
 
   return (
     <ProfileFrame onBack={() => view.open("home")}>
       <div className="flex flex-col gap-3">
         <p className="label-caps text-muted-foreground">Your profile</p>
-        <h1 className="display text-5xl uppercase sm:text-6xl">
-          {facts.length} <span className="text-brand">{facts.length === 1 ? "fact" : "facts"}.</span>
+        <h1 className="text-5xl display uppercase sm:text-6xl">
+          {facts.length}{" "}
+          <span className="text-brand">
+            {facts.length === 1 ? "fact" : "facts"}.
+          </span>
         </h1>
         <p className="max-w-xl text-sm leading-relaxed text-muted-foreground">
           {syncing
             ? "Kept on this device and synced to your account."
             : "Kept in this browser only. Forms fill from these facts; you still approve every answer."}{" "}
-          Sensitive facts are never filled in unless you switch on <strong className="font-semibold text-foreground">OK to autofill</strong>.
+          Sensitive facts are never filled in unless you switch on{" "}
+          <strong className="font-semibold text-foreground">
+            OK to autofill
+          </strong>
+          .
         </p>
       </div>
 
       <div className="flex flex-wrap gap-2">
-        <Button variant="outline" onClick={() => view.open("onboarding", "sources")}>
+        <Button
+          variant="outline"
+          onClick={() => view.open("onboarding", "sources")}
+        >
           <PlusIcon /> Add another source
         </Button>
-        <Button variant="outline" disabled={!facts.length} onClick={() => download("bolbharo-profile.json", profileJson(facts))}>
+        <Button
+          variant="outline"
+          disabled={!facts.length}
+          onClick={() => download("bolbharo-profile.json", profileJson(facts))}
+        >
           <DownloadIcon /> Export JSON
         </Button>
         <input
@@ -90,9 +130,14 @@ export function ProfileScreen() {
             try {
               const imported = parseProfileJson(await file.text())
               const merged = mergeNewest(loadProfile(), imported)
-              if (await persist(merged, false)) toast.success(`Imported ${imported.length} ${imported.length === 1 ? "fact" : "facts"}`)
+              if (await persist(merged, false))
+                toast.success(
+                  `Imported ${imported.length} ${imported.length === 1 ? "fact" : "facts"}`
+                )
             } catch (err) {
-              toast.error("Couldn't import that file", { description: err instanceof Error ? err.message : undefined })
+              toast.error("Couldn't import that file", {
+                description: err instanceof Error ? err.message : undefined,
+              })
             }
           }}
         />
@@ -119,21 +164,32 @@ export function ProfileScreen() {
       </div>
 
       <p className="surface-lime rounded-xl p-4 text-xs leading-relaxed">
-        The side panel keeps its own copy of the profile. To use yours there, export it here, then import it in the side
-        panel. An export holds your facts and the words they came from, so keep the file private.
+        The side panel keeps its own copy of the profile. To use yours there,
+        export it here, then import it in the side panel. An export holds your
+        facts and the words they came from, so keep the file private.
       </p>
 
       {facts.length === 0 ? (
         <div className="panel flex flex-col items-start gap-4 rounded-xl p-6">
           <p className="text-sm leading-relaxed text-muted-foreground">
-            No facts yet. Add your resume, GitHub or LinkedIn and Apply करो will read them with you.
+            No facts yet. Add your resume, GitHub or LinkedIn and Apply करो will
+            read them with you.
           </p>
-          <Button onClick={() => view.open("onboarding", "welcome")}>Set up my profile</Button>
+          <Button onClick={() => view.open("onboarding", "welcome")}>
+            Set up my profile
+          </Button>
         </div>
       ) : (
         groups.map(({ s, items }) => (
-          <section key={s} className="flex flex-col gap-3" aria-labelledby={`profile-${s}`}>
-            <h2 id={`profile-${s}`} className="label-caps flex items-center gap-2 text-muted-foreground">
+          <section
+            key={s}
+            className="flex flex-col gap-3"
+            aria-labelledby={`profile-${s}`}
+          >
+            <h2
+              id={`profile-${s}`}
+              className="flex items-center gap-2 label-caps text-muted-foreground"
+            >
               {s} <span className="mono-caps tabular-nums">{items.length}</span>
             </h2>
             {items.map((f) => (

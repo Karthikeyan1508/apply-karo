@@ -22,7 +22,12 @@ const Body = z.object({
 export async function POST(req: Request) {
   try {
     const parsed = Body.safeParse(await req.json().catch(() => null))
-    if (!parsed.success) throw new AppError("BAD_REQUEST", 400, "The request was not in the expected shape.")
+    if (!parsed.success)
+      throw new AppError(
+        "BAD_REQUEST",
+        400,
+        "The request was not in the expected shape."
+      )
     if (!llmConfigured()) {
       throw new AppError(
         "LLM_NOT_CONFIGURED",

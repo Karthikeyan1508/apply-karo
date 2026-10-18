@@ -13,20 +13,32 @@ const STATUS = { NOT_FOUND: 404, RATE_LIMITED: 429, FAILED: 502 } as const
 export async function POST(req: Request) {
   try {
     const parsed = Body.safeParse(await req.json().catch(() => null))
-    if (!parsed.success) throw new AppError("BAD_REQUEST", 400, "The request was not in the expected shape.")
+    if (!parsed.success)
+      throw new AppError(
+        "BAD_REQUEST",
+        400,
+        "The request was not in the expected shape."
+      )
     const login = parseGithubUser(parsed.data.input)
     if (!login) {
-      throw new AppError("BAD_GITHUB_USER", 400, "Enter a GitHub username, or a link like github.com/username.")
+      throw new AppError(
+        "BAD_GITHUB_USER",
+        400,
+        "Enter a GitHub username, or a link like github.com/username."
+      )
     }
     try {
-      const corpus = await githubCorpus(login, { token: process.env.GITHUB_TOKEN?.trim() || undefined })
+      const corpus = await githubCorpus(login, {
+        token: process.env.GITHUB_TOKEN?.trim() || undefined,
+      })
       return Response.json({
         source: { name: "github", text: corpus.text },
         login: corpus.login,
         repos: corpus.repos,
       })
     } catch (e) {
-      if (e instanceof GithubError) throw new AppError(`GITHUB_${e.code}`, STATUS[e.code], e.message)
+      if (e instanceof GithubError)
+        throw new AppError(`GITHUB_${e.code}`, STATUS[e.code], e.message)
       throw e
     }
   } catch (e) {

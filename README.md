@@ -61,6 +61,8 @@ app/api/auth/*        Neon Auth's own API (sign-in, callback, session, sign-out)
 app/api/forms/*       connect Google Forms: start, callback, disconnect
 app/api/account       who is signed in and what they can do (never a token)
 app/api/profile       the signed-in user's synced facts (GET, PUT, DELETE)
+app/api/onboard/github  public GitHub profile and top repositories, as one source (GITHUB_TOKEN optional)
+app/api/onboard/extract sources -> profile facts, each quote checked against its source (Groq)
 app/api/voice/session connect info for the agent (public id, or token for a private agent)
 app/api/health        which keys are configured
 app/setup             copy-paste agent setup, with live status
@@ -94,6 +96,18 @@ components/landing/   landing page
 ## ElevenLabs setup and MCP
 
 The agent is configured from code, not by hand: `lib/agent-prompt.ts` is the single source, and `npm run configure:agent` pushes it to the agent named in `.env.local` (tools are matched by name, so it is safe to re-run). `.mcp.json` registers the official ElevenLabs MCP server (`elevenlabs-mcp`, needs `uv`) through `scripts/elevenlabs-mcp.mjs`, which reads the key from `.env.local`. In Claude Code, approve the project server and its tools (`get_agent`, `list_agents`, `simulate_conversation`, `get_conversation`, text to speech and more) become available.
+
+## Your profile (onboarding and autofill)
+
+Say it once. Add your resume, your GitHub and your LinkedIn profile, and BolBharo builds a profile from them. Every fact comes with the words it came from, and facts that cannot be quoted are dropped. You review and edit the facts, then the interview asks only what the sources did not answer (by voice or text, through the same interview as a form).
+
+- **Sources.** A resume (PDF, TXT or Markdown, or pasted text). GitHub: a username or profile link. The server reads your public profile, your top six non-fork repositories and their READMEs, with `api.github.com` as the only host. LinkedIn is not scraped: save your profile to PDF and upload it, or paste its text. The profile link is kept as a link only.
+- **Reading.** One Groq extraction per piece of text (at most five pieces per onboarding). Each returned fact must carry a quote that appears in its source, checked in code (`lib/profile-ground.ts`). Sensitive facts (pay, date of birth, caste, government ids and similar) are marked and never filled in unless you switch on **OK to autofill**.
+- **Autofill.** When a form is read, or any session starts, confirmed non-sensitive facts fill matching questions as answers, with their source shown. Anything else waits for a one-line confirmation in the interview. Long free-text answers are still drafted from the facts and the form's context.
+- **Storage.** In this browser (`bolbharo.profile.v1`), and in your account when sync is on. The side panel runs the app in an iframe with its own storage, so it keeps a separate copy: use **Profile, Export JSON** here and **Import JSON** there.
+- **Screens.** `/?` **Set it up** (landing card, or the side panel's start screen), the onboarding flow, and **Profile** (facts by section, edit, remove, OK to autofill, export, import, delete all). Routes: `app/api/onboard/github` (GitHub public data) and `app/api/onboard/extract` (quoted facts). Code: `lib/profile-keys.ts` (checklist, keys, sections), `lib/profile-gaps.ts` (gaps and the onboarding session), `lib/profile-extract.ts` and `lib/profile-ground.ts` (extraction and the quote guard), `lib/github.ts`, `lib/onboard-client.ts`, `components/profile/*`.
+
+Not done: LinkedIn is never fetched by the server. Matching is by question wording and canonical key, so an unusual form label may still be asked. A fact's value is checked for its quote, not that the quote supports the value (the same limit as interview answers).
 
 ## Scoreboard
 
@@ -189,6 +203,7 @@ Copy `.env.example` to `.env.local`.
 | `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `AUTH_SECRET` | Optional: connect Google Forms to read private forms. `AUTH_SECRET` is 32 or more random characters |
 | `APP_URL` | Optional: the public address, when behind a proxy |
 | `DATABASE_URL` | Optional: a Postgres connection string, to sync saved facts |
+| `GITHUB_TOKEN` | Optional: a GitHub token with no scopes, to raise GitHub's rate limit for onboarding |
 
 ## Phases
 

@@ -18,6 +18,10 @@ The panel frames the app at `http://localhost:3100`. Change the address under **
 - After approval the app asks the panel to fill (`bolbharo:fill`), and `fill.js` sets the values and fires the page's own input and change events.
 - Messages are checked on both sides: the panel accepts only the framed app's origin, and the app accepts only the extension that framed it.
 
+## Your profile in the side panel
+
+The side panel keeps its own copy of the profile: its storage is separate from the normal site's, and sign-in does not reach the frame. Build the profile on the normal site, press **Profile, Export JSON**, then in the side panel press **Profile, Import JSON**. Once there, a form that is read is pre-filled from the profile, and only the questions the profile does not answer are asked. The side panel's start screen shows how many facts are saved.
+
 ## Permissions
 
 `<all_urls>` so it can read the page you press Read on, and frames inside it. `sidePanel`, `scripting`, `storage`. It reads a page only when you press the button, and talks only to the Apply करो app.
@@ -31,4 +35,4 @@ The panel frames the app at `http://localhost:3100`. Change the address under **
 
 ## Test
 
-`npm run test:extension` starts Chrome, loads the extension over the DevTools protocol (branded Chrome ignores `--load-extension`), opens two fixture pages (plain HTML, and Google-Forms-style ARIA), reads them and fills them. Needs the app on `APP` (default `http://localhost:3100`) and Chrome at the usual path (or set `CHROME`).
+`npm run test:extension` starts Chrome, loads the extension over the DevTools protocol (branded Chrome ignores `--load-extension`), opens two fixture pages (plain HTML, and Google-Forms-style ARIA), reads them and fills them. It also seeds a profile into the side panel's own storage and checks that reading the plain page fills the two known questions and leaves the rest open. Model calls are stubbed, so no key is needed. Needs the app on `APP` (default `http://localhost:3100`) and Chrome at the usual path (or set `CHROME`).

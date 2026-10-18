@@ -34,12 +34,24 @@ const browser = await chromium.connectOverCDP("http://localhost:9333")
 const { id } = await (await browser.newBrowserCDPSession()).send("Extensions.loadUnpacked", { path: ext })
 const context = browser.contexts()[0]
 
-// The app's /api/ingest is answered here, so this test needs no model key. It records what was sent.
+// The app's model calls are answered here, so this test needs no model key. It records what was sent.
+// "error" makes /api/ingest fail (the fixture checks above); "session" builds a form from what was sent.
 let sent = null
+let ingestMode = "error"
 await context.route("**/api/ingest", async (route) => {
   sent = JSON.parse(route.request().postData())
-  await route.fulfill({ status: 503, contentType: "application/json", body: JSON.stringify({ error: { code: "TEST", message: "stub" } }) })
+  if (ingestMode === "error") {
+    return route.fulfill({ status: 503, contentType: "application/json", body: JSON.stringify({ error: { code: "TEST", message: "stub" } }) })
+  }
+  const fields = sent.page.fields.map((f, i) => ({
+    id: `F${i + 1}`, index: i, entryId: f.ref, label: f.label, kind: f.kind, options: f.options, multi: f.multi, required: f.required,
+    intent: "", slots: [{ name: "answer", ask: f.label, value: null, quote: null, skipped: false, fromProfile: false }],
+    maxChars: null, draft: "", draftSig: "", edited: false, flags: [],
+  }))
+  await route.fulfill({ contentType: "application/json", body: JSON.stringify({ session: { id: "s-e2e", title: sent.page.title, description: "", source: "page", formUrl: null, context: "", lang: "en-IN", fields } }) })
 })
+// Saved facts that match the fixture come back as "no further matches": the model step has nothing to add.
+await context.route("**/api/prefill", (route) => route.fulfill({ contentType: "application/json", body: JSON.stringify({ fills: [] }) }))
 
 /** Open a fixture, open the panel pointed at it, press Read, and return what the app was sent. */
 async function readPage(name) {
@@ -129,6 +141,40 @@ const aria = await readPage("aria.html")
     sells: [...document.querySelectorAll("[role=checkbox]")].map((r) => r.getAttribute("aria-checked")).join(),
   }))
   check("aria: text, textarea, radiogroup and checkbox group are filled", got.shop === "Gupta General Store" && got.about.startsWith("A kirana") && got.type === "true,false" && got.sells === "true,true", JSON.stringify(got))
+}
+
+// The profile lives in the framed app's own localStorage (the side panel's copy). Seed it there, then read
+// the plain fixture: the known fields fill from the profile and only the leftover questions stay open.
+{
+  console.log("== profile in the side panel ==")
+  ingestMode = "session"
+  const page = await context.newPage()
+  await page.goto(`${site}/plain.html`)
+  const panel = await context.newPage()
+  await panel.goto(`chrome-extension://${id}/panel.html`)
+  const tabId = await panel.evaluate(async (u) => (await chrome.tabs.query({ url: u }))[0].id, `${site}/plain.html`)
+  await panel.goto(`chrome-extension://${id}/panel.html?tab=${tabId}`)
+  await panel.frameLocator("iframe").locator("#main").waitFor({ timeout: 30000 })
+  const seed = [
+    { label: "Full name", slot: "answer", value: "Asha Patil", quote: "Asha Patil", form: "Your profile", savedAt: 1, key: "full_name", source: "resume.pdf", confirmed: true },
+    { label: "Email", slot: "answer", value: "asha@example.com", quote: "asha@example.com", form: "Your profile", savedAt: 1, key: "email", source: "resume.pdf", confirmed: true },
+    { label: "Expected CTC", slot: "answer", value: "15 LPA", quote: "15 LPA", form: "Your profile", savedAt: 1, key: "expected_ctc", source: "resume.pdf", confirmed: true, sensitive: true },
+  ]
+  await panel.frames().find((f) => f.url().startsWith(APP)).evaluate((v) => localStorage.setItem("bolbharo.profile.v1", v), JSON.stringify(seed))
+  await panel.reload()
+  await panel.frameLocator("iframe").locator("#main").waitFor({ timeout: 30000 })
+  await panel.waitForTimeout(1500)
+  const frame = panel.frames().find((f) => f.url().startsWith(APP))
+  check("profile: the framed app sees the seeded facts", (await frame.evaluate(() => localStorage.getItem("bolbharo.profile.v1")))?.includes("asha@example.com") === true)
+
+  await panel.getByRole("button", { name: "Read this page" }).click()
+  await frame.getByText("2/6 facts").waitFor({ timeout: 20000 }).catch(() => {})
+  const header = await frame.locator("header").first().textContent().catch(() => "")
+  check("profile: two known fields are filled from the profile", /2\/6 facts/.test(header), header.trim().slice(0, 80))
+  const plan = await frame.locator("section", { hasText: "Plan" }).first().textContent().catch(() => "")
+  check("profile: the rest are left open for the interview", /4 to go/.test(plan) && /Notice period/.test(plan) && /Work authorisation/.test(plan), plan.replace(/\s+/g, " ").slice(0, 120))
+  ingestMode = "error"
+  await panel.close()
 }
 
 // Microphone: the extension's permission page gets it, and that covers the framed app. (Chrome is

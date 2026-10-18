@@ -1,6 +1,12 @@
 import { z } from "zod"
 import { structured } from "./llm"
-import { chunkText, groundFacts, MAX_CHUNKS, type RawFact, type SourceText } from "./profile-ground"
+import {
+  chunkText,
+  groundFacts,
+  MAX_CHUNKS,
+  type RawFact,
+  type SourceText,
+} from "./profile-ground"
 import type { ProfileItem } from "./types"
 
 export { groundFacts, chunkText, MAX_CHUNKS, type RawFact, type SourceText }
@@ -39,12 +45,22 @@ export async function extractProfile(
   sources: readonly SourceText[],
   now = Date.now()
 ): Promise<{ facts: ProfileItem[]; truncated: boolean }> {
-  const pieces = sources.flatMap((s) => chunkText(s.text).map((text) => ({ source: s.name, text })))
+  const pieces = sources.flatMap((s) =>
+    chunkText(s.text).map((text) => ({ source: s.name, text }))
+  )
   const used = pieces.slice(0, MAX_CHUNKS)
   const raw: RawFact[] = []
   for (const p of used) {
-    const out = await structured(SYSTEM, JSON.stringify({ source: p.source, text: p.text }), FactsSchema, "profile_facts")
+    const out = await structured(
+      SYSTEM,
+      JSON.stringify({ source: p.source, text: p.text }),
+      FactsSchema,
+      "profile_facts"
+    )
     raw.push(...out.facts)
   }
-  return { facts: groundFacts(raw, sources, now), truncated: pieces.length > used.length }
+  return {
+    facts: groundFacts(raw, sources, now),
+    truncated: pieces.length > used.length,
+  }
 }

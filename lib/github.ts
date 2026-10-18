@@ -35,7 +35,8 @@ export function parseGithubUser(input: string): string | null {
     } catch {
       return null
     }
-    if (url.hostname !== "github.com" && url.hostname !== "www.github.com") return null
+    if (url.hostname !== "github.com" && url.hostname !== "www.github.com")
+      return null
     const [first] = url.pathname.split("/").filter(Boolean)
     if (!first) return null
     name = first
@@ -79,7 +80,12 @@ export interface GithubOptions {
   token?: string
 }
 
-async function call(f: typeof fetch, path: string, token: string | undefined, raw = false): Promise<Response> {
+async function call(
+  f: typeof fetch,
+  path: string,
+  token: string | undefined,
+  raw = false
+): Promise<Response> {
   const headers: Record<string, string> = {
     accept: raw ? "application/vnd.github.raw" : "application/vnd.github+json",
     "user-agent": "Apply करो",
@@ -87,21 +93,35 @@ async function call(f: typeof fetch, path: string, token: string | undefined, ra
   }
   if (token) headers.authorization = `Bearer ${token}`
   try {
-    return await f(`${GITHUB_API}${path}`, { headers, signal: AbortSignal.timeout(10_000), cache: "no-store" })
+    return await f(`${GITHUB_API}${path}`, {
+      headers,
+      signal: AbortSignal.timeout(10_000),
+      cache: "no-store",
+    })
   } catch {
-    throw new GithubError("FAILED", "Couldn't reach GitHub. Check your connection and try again.")
+    throw new GithubError(
+      "FAILED",
+      "Couldn't reach GitHub. Check your connection and try again."
+    )
   }
 }
 
 function failed(res: Response, what: string): GithubError {
-  if (res.status === 404) return new GithubError("NOT_FOUND", `GitHub has no public profile for ${what}. Check the name.`)
+  if (res.status === 404)
+    return new GithubError(
+      "NOT_FOUND",
+      `GitHub has no public profile for ${what}. Check the name.`
+    )
   if (res.status === 403 || res.status === 429) {
     return new GithubError(
       "RATE_LIMITED",
       "GitHub's rate limit was hit. Wait about an hour, or add GITHUB_TOKEN to .env.local, then try again."
     )
   }
-  return new GithubError("FAILED", `GitHub answered ${res.status}. Try again later.`)
+  return new GithubError(
+    "FAILED",
+    `GitHub answered ${res.status}. Try again later.`
+  )
 }
 
 async function json<T>(res: Response, what: string): Promise<T> {
@@ -113,14 +133,22 @@ async function json<T>(res: Response, what: string): Promise<T> {
 export function pickRepos(repos: readonly GhRepo[], n = TOP_REPOS): GhRepo[] {
   return repos
     .filter((r) => !r.fork)
-    .sort((a, b) => b.stargazers_count - a.stargazers_count || Date.parse(b.pushed_at) - Date.parse(a.pushed_at))
+    .sort(
+      (a, b) =>
+        b.stargazers_count - a.stargazers_count ||
+        Date.parse(b.pushed_at) - Date.parse(a.pushed_at)
+    )
     .slice(0, n)
 }
 
 /** Plain text for the profile and repositories. Every line is a source the model may quote. */
-export function corpusText(user: GhUser, repos: readonly { repo: GhRepo; readme: string; languages: string[] }[]): string {
+export function corpusText(
+  user: GhUser,
+  repos: readonly { repo: GhRepo; readme: string; languages: string[] }[]
+): string {
   const lines = [`GitHub profile: ${user.html_url}`]
-  const add = (label: string, value: string | null) => value && lines.push(`${label}: ${value}`)
+  const add = (label: string, value: string | null) =>
+    value && lines.push(`${label}: ${value}`)
   add("Name", user.name)
   add("Bio", user.bio)
   add("Company", user.company)
@@ -133,18 +161,30 @@ export function corpusText(user: GhUser, repos: readonly { repo: GhRepo; readme:
     add("Description", repo.description)
     if (languages.length) lines.push(`Languages: ${languages.join(", ")}`)
     if (repo.topics?.length) lines.push(`Topics: ${repo.topics.join(", ")}`)
-    lines.push(`Stars: ${repo.stargazers_count}. Last pushed: ${repo.pushed_at.slice(0, 10)}`)
+    lines.push(
+      `Stars: ${repo.stargazers_count}. Last pushed: ${repo.pushed_at.slice(0, 10)}`
+    )
     if (readme) lines.push("README:", readme)
   }
   return lines.join("\n").slice(0, CORPUS_CHARS)
 }
 
 /** Read a user's public profile and top repositories. Throws a GithubError the page can show. */
-export async function githubCorpus(login: string, opts: GithubOptions = {}): Promise<GithubCorpus> {
+export async function githubCorpus(
+  login: string,
+  opts: GithubOptions = {}
+): Promise<GithubCorpus> {
   const f = opts.fetch ?? fetch
-  const user = await json<GhUser>(await call(f, `/users/${login}`, opts.token), `@${login}`)
+  const user = await json<GhUser>(
+    await call(f, `/users/${login}`, opts.token),
+    `@${login}`
+  )
   const list = await json<GhRepo[]>(
-    await call(f, `/users/${login}/repos?sort=pushed&per_page=100&type=owner`, opts.token),
+    await call(
+      f,
+      `/users/${login}/repos?sort=pushed&per_page=100&type=owner`,
+      opts.token
+    ),
     `@${login}`
   )
   const top = pickRepos(Array.isArray(list) ? list : [])
@@ -156,7 +196,9 @@ export async function githubCorpus(login: string, opts: GithubOptions = {}): Pro
           .then((r) => (r.ok ? r.text() : ""))
           .catch(() => ""),
         call(f, `${base}/languages`, opts.token)
-          .then((r) => (r.ok ? (r.json() as Promise<Record<string, number>>) : {}))
+          .then((r) =>
+            r.ok ? (r.json() as Promise<Record<string, number>>) : {}
+          )
           .catch(() => ({}) as Record<string, number>),
       ])
       const languages = Object.entries(langs)

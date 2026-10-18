@@ -21,7 +21,11 @@ export interface ReadResult {
   notes: string[]
 }
 
-const shortName = (name: string) => name.replace(/[^\w .()-]/g, "").trim().slice(0, 40) || "resume"
+const shortName = (name: string) =>
+  name
+    .replace(/[^\w .()-]/g, "")
+    .trim()
+    .slice(0, 40) || "resume"
 
 async function post<T>(url: string, body: unknown): Promise<T> {
   const res = await fetch(url, {
@@ -31,7 +35,11 @@ async function post<T>(url: string, body: unknown): Promise<T> {
   })
   const data = (await res.json().catch(() => null)) as T | ApiError | null
   if (!res.ok || !data || (typeof data === "object" && "error" in data)) {
-    throw new Error(data && typeof data === "object" && "error" in data ? data.error.message : "Something went wrong.")
+    throw new Error(
+      data && typeof data === "object" && "error" in data
+        ? data.error.message
+        : "Something went wrong."
+    )
   }
   return data as T
 }
@@ -42,7 +50,10 @@ export function linkedinLink(input: string): string | null {
   if (!raw) return null
   try {
     const url = new URL(/^https?:\/\//i.test(raw) ? raw : `https://${raw}`)
-    return url.hostname === "linkedin.com" || url.hostname.endsWith(".linkedin.com") ? url.toString().replace(/\/$/, "") : null
+    return url.hostname === "linkedin.com" ||
+      url.hostname.endsWith(".linkedin.com")
+      ? url.toString().replace(/\/$/, "")
+      : null
   } catch {
     return null
   }
@@ -53,7 +64,11 @@ export function linkedinLink(input: string): string | null {
  * together. Links are facts too, with the link itself as the quote. Every fact is checked against its
  * source again here, so the browser never trusts the server alone.
  */
-export async function readSources(inputs: OnboardInputs, onStep: (step: ReadStep) => void, now = Date.now()): Promise<ReadResult> {
+export async function readSources(
+  inputs: OnboardInputs,
+  onStep: (step: ReadStep) => void,
+  now = Date.now()
+): Promise<ReadResult> {
   const notes: string[] = []
   // Every source a quote may come from.
   const sources: SourceText[] = []
@@ -62,7 +77,10 @@ export async function readSources(inputs: OnboardInputs, onStep: (step: ReadStep
   const links: RawFact[] = []
 
   if (inputs.resume) {
-    const resume = { name: shortName(inputs.resume.name), text: inputs.resume.text }
+    const resume = {
+      name: shortName(inputs.resume.name),
+      text: inputs.resume.text,
+    }
     sources.push(resume)
     modelSources.push(resume)
   }
@@ -70,24 +88,47 @@ export async function readSources(inputs: OnboardInputs, onStep: (step: ReadStep
   if (inputs.github.trim()) {
     onStep("github")
     try {
-      const gh = await post<{ source: SourceText; login: string }>("/api/onboard/github", { input: inputs.github })
+      const gh = await post<{ source: SourceText; login: string }>(
+        "/api/onboard/github",
+        { input: inputs.github }
+      )
       sources.push(gh.source)
       modelSources.push(gh.source)
       const url = `https://github.com/${gh.login}`
-      links.push({ key: "github", label: "GitHub", value: url, quote: url, source: "github" })
+      links.push({
+        key: "github",
+        label: "GitHub",
+        value: url,
+        quote: url,
+        source: "github",
+      })
     } catch (e) {
-      notes.push(`GitHub: ${e instanceof Error ? e.message : "couldn't read it."}`)
+      notes.push(
+        `GitHub: ${e instanceof Error ? e.message : "couldn't read it."}`
+      )
     }
   }
 
-  const link = inputs.linkedinUrl.trim() ? linkedinLink(inputs.linkedinUrl) : null
-  if (inputs.linkedinUrl.trim() && !link) notes.push("LinkedIn: that is not a linkedin.com link, so it was not saved.")
+  const link = inputs.linkedinUrl.trim()
+    ? linkedinLink(inputs.linkedinUrl)
+    : null
+  if (inputs.linkedinUrl.trim() && !link)
+    notes.push(
+      "LinkedIn: that is not a linkedin.com link, so it was not saved."
+    )
   if (link) {
-    links.push({ key: "linkedin", label: "LinkedIn", value: link, quote: link, source: "linkedin" })
+    links.push({
+      key: "linkedin",
+      label: "LinkedIn",
+      value: link,
+      quote: link,
+      source: "linkedin",
+    })
     sources.push({ name: "linkedin", text: `LinkedIn profile: ${link}` })
   }
   if (inputs.linkedin) {
-    const text = (link ? `LinkedIn profile: ${link}\n` : "") + inputs.linkedin.text
+    const text =
+      (link ? `LinkedIn profile: ${link}\n` : "") + inputs.linkedin.text
     sources.push({ name: "linkedin", text })
     modelSources.push({ name: "linkedin", text })
   }
@@ -95,9 +136,19 @@ export async function readSources(inputs: OnboardInputs, onStep: (step: ReadStep
   let extracted: RawFact[] = []
   if (modelSources.length) {
     onStep("facts")
-    const res = await post<{ facts: ProfileItem[]; truncated: boolean }>("/api/onboard/extract", { sources: modelSources })
-    extracted = res.facts.map((f) => ({ key: f.key ?? "", label: f.label, value: f.value, quote: f.quote, source: f.source ?? "" }))
-    if (res.truncated) notes.push("Your documents are long. Only the first part was read.")
+    const res = await post<{ facts: ProfileItem[]; truncated: boolean }>(
+      "/api/onboard/extract",
+      { sources: modelSources }
+    )
+    extracted = res.facts.map((f) => ({
+      key: f.key ?? "",
+      label: f.label,
+      value: f.value,
+      quote: f.quote,
+      source: f.source ?? "",
+    }))
+    if (res.truncated)
+      notes.push("Your documents are long. Only the first part was read.")
   }
 
   // Links first, so a link wins over anything the model said about the same key.

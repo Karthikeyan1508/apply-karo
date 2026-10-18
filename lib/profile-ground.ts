@@ -33,14 +33,19 @@ export function chunkText(text: string, size = CHUNK_CHARS): string[] {
   }
 }
 
-const clean = (s: string, max: number) => (typeof s === "string" ? s.trim().slice(0, max) : "")
+const clean = (s: string, max: number) =>
+  typeof s === "string" ? s.trim().slice(0, max) : ""
 
 /**
  * The hard rule of onboarding. A fact survives only if its quote really appears in one of the source
  * texts, checked here in code, never taken from the model. Also keeps one fact per key, gives each a
  * unique label, and marks sensitive ones so they are not filled in without the person's say-so.
  */
-export function groundFacts(raw: readonly RawFact[], sources: readonly SourceText[], now = Date.now()): ProfileItem[] {
+export function groundFacts(
+  raw: readonly RawFact[],
+  sources: readonly SourceText[],
+  now = Date.now()
+): ProfileItem[] {
   const keys = new Set<string>()
   const labels = new Set<string>()
   const out: ProfileItem[] = []
@@ -49,14 +54,16 @@ export function groundFacts(raw: readonly RawFact[], sources: readonly SourceTex
     const quote = clean(r.quote, 300)
     if (!value || quote.length < 2) continue
     const src =
-      sources.find((s) => s.name === r.source && quoteSupported(quote, [s.text])) ??
-      sources.find((s) => quoteSupported(quote, [s.text]))
+      sources.find(
+        (s) => s.name === r.source && quoteSupported(quote, [s.text])
+      ) ?? sources.find((s) => quoteSupported(quote, [s.text]))
     if (!src) continue
     const key = canonicalKey(r.key, r.label)
     if (keys.has(key)) continue
     keys.add(key)
     let label = canonicalLabel(key, clean(r.label, 120) || key)
-    for (let n = 2; labels.has(label); n++) label = `${canonicalLabel(key, clean(r.label, 120) || key)} (${n})`
+    for (let n = 2; labels.has(label); n++)
+      label = `${canonicalLabel(key, clean(r.label, 120) || key)} (${n})`
     labels.add(label)
     out.push({
       label,

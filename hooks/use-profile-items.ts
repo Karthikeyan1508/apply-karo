@@ -1,7 +1,11 @@
 "use client"
 
 import { useMemo, useSyncExternalStore } from "react"
-import { parseStoredProfile, PROFILE_EVENT, readStoredProfile } from "@/lib/profile"
+import {
+  parseStoredProfile,
+  PROFILE_EVENT,
+  readStoredProfile,
+} from "@/lib/profile"
 import type { ProfileItem } from "@/lib/types"
 
 function subscribe(onChange: () => void) {
