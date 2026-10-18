@@ -21,6 +21,7 @@ import { useHealth } from "@/hooks/use-health"
 import { useInterviewStore } from "@/hooks/use-interview"
 import { uploadDocument, wordsIn, type Doc } from "@/lib/document"
 import { findGaps, onboardingSession } from "@/lib/profile-gaps"
+import { grillSession } from "@/lib/profile-grill"
 import { SECTIONS, sectionOf } from "@/lib/profile-keys"
 import {
   loadProfile,
@@ -31,6 +32,7 @@ import {
 import { useProfileItems } from "@/hooks/use-profile-items"
 import {
   readSources,
+  readGrill,
   type OnboardInputs,
   type ReadStep,
 } from "@/lib/onboard-client"
@@ -724,8 +726,8 @@ export function Onboarding() {
     }
   }
 
-  /** Save the reviewed facts, then either start the gap questions or go straight to done. */
-  function save(startQuestions: boolean, list: ProfileItem[] = facts) {
+  /** Save reviewed source facts, then deepen projects before optionally asking profile basics. */
+  async function save(startQuestions: boolean, list: ProfileItem[] = facts) {
     const count = saveReviewed(list.filter((f) => f.value.trim()))
     if (count === null) {
       toast.error("Couldn't save", {
@@ -735,6 +737,21 @@ export function Onboarding() {
       return
     }
     if (syncEnabled()) void pushProfile()
+    if (startQuestions && llm) {
+      try {
+        const questions = await readGrill(list.filter((f) => f.value.trim()))
+        if (questions.length) {
+          store.dispatch({ type: "session", session: grillSession(questions) })
+          view.open("home")
+          return
+        }
+      } catch {
+        toast.message("Skipping the project questions", {
+          description:
+            "Your saved facts are safe. You can still answer the profile basics.",
+        })
+      }
+    }
     const gaps = startQuestions ? findGaps(loadProfile()) : []
     if (gaps.length) {
       store.dispatch({ type: "session", session: onboardingSession(gaps) })

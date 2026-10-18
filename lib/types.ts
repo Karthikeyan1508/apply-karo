@@ -38,6 +38,17 @@ export interface FormField extends RawField {
   /** The user changed the draft by hand or by a rewrite request: never auto-redraft it. */
   edited: boolean
   flags: string[]
+  /** A bounded follow-up about a project or role, built from compact reviewed facts. */
+  grill?: {
+    subjectKey: string
+    category:
+      | "ownership"
+      | "decision"
+      | "tradeoff"
+      | "impact"
+      | "outcome"
+      | "motivation"
+  }
 }
 
 /**
@@ -61,6 +72,12 @@ export interface ProfileItem {
   sensitive?: boolean
   /** The user explicitly allowed a sensitive fact to be filled in automatically. */
   autofill?: boolean
+  /** A reusable clarification about a project or role, never broadly autofilled. */
+  kind?: "decision"
+  /** The project or experience fact this decision belongs to. */
+  subjectKey?: string
+  category?:
+    "ownership" | "decision" | "tradeoff" | "impact" | "outcome" | "motivation"
 }
 
 export type SessionSource = "google" | "text" | "demo" | "page" | "onboarding"
@@ -75,6 +92,8 @@ export interface Session {
   context: string
   lang: string
   fields: FormField[]
+  /** Distinguishes source-aware deepening from the optional standard profile gaps. */
+  onboardingPurpose?: "grill" | "gaps"
 }
 
 export interface SlotUpdate {

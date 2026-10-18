@@ -56,6 +56,11 @@ export function FactCard({
         <span className="border px-1.5 py-0.5 label-caps text-muted-foreground">
           {sourceLabel(fact.source)}
         </span>
+        {fact.kind === "decision" && (
+          <span className="border px-1.5 py-0.5 label-caps text-muted-foreground">
+            {fact.category ?? "Decision"}
+          </span>
+        )}
         {sensitive && (
           <span className="border border-brand px-1.5 py-0.5 label-caps text-brand">
             Sensitive

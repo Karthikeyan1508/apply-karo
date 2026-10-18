@@ -1,4 +1,11 @@
-import { applyPrefill, matchExact, mergeNewest, mergeProfile, profileFromSession, type PrefillFill } from "./core"
+import {
+  applyPrefill,
+  matchExact,
+  mergeNewest,
+  mergeProfile,
+  profileFromSession,
+  type PrefillFill,
+} from "./core"
 import { factsFromOnboarding } from "./profile-gaps"
 import type { ProfileItem, Session } from "./types"
 
@@ -9,12 +16,21 @@ const KEY = "bolbharo.profile.v1"
 /** Fired in this tab whenever the saved facts change, so the UI can update. */
 export const PROFILE_EVENT = "bolbharo:profile"
 const notify = () => window.dispatchEvent(new Event(PROFILE_EVENT))
+const DECISION_CATEGORIES = new Set([
+  "ownership",
+  "decision",
+  "tradeoff",
+  "impact",
+  "outcome",
+  "motivation",
+])
 
 /** A saved fact. The optional onboarding fields are checked only when present, so older data still loads. */
 export function valid(p: unknown): p is ProfileItem {
   if (!p || typeof p !== "object") return false
   const o = p as Record<string, unknown>
-  const optional = (name: string, type: string) => o[name] === undefined || typeof o[name] === type
+  const optional = (name: string, type: string) =>
+    o[name] === undefined || typeof o[name] === type
   return (
     typeof o.label === "string" &&
     typeof o.slot === "string" &&
@@ -26,7 +42,17 @@ export function valid(p: unknown): p is ProfileItem {
     optional("source", "string") &&
     optional("confirmed", "boolean") &&
     optional("sensitive", "boolean") &&
-    optional("autofill", "boolean")
+    optional("autofill", "boolean") &&
+    (o.kind === undefined || o.kind === "decision") &&
+    optional("subjectKey", "string") &&
+    (o.category === undefined ||
+      (typeof o.category === "string" &&
+        DECISION_CATEGORIES.has(o.category))) &&
+    (o.kind !== "decision" ||
+      (typeof o.key === "string" &&
+        typeof o.subjectKey === "string" &&
+        typeof o.category === "string" &&
+        DECISION_CATEGORIES.has(o.category)))
   )
 }
 
@@ -34,14 +60,20 @@ export function valid(p: unknown): p is ProfileItem {
  * Save facts the person has reviewed. They replace older facts for the same question. Returns how many
  * facts are saved now, or null when storage is blocked.
  */
-export function saveReviewed(facts: readonly ProfileItem[], now = Date.now()): number | null {
+export function saveReviewed(
+  facts: readonly ProfileItem[],
+  now = Date.now()
+): number | null {
   const reviewed = facts.map((f) => ({ ...f, confirmed: true, savedAt: now }))
   const merged = mergeNewest(loadProfile(), reviewed)
   return writeProfile(merged) ? merged.length : null
 }
 
 /** Facts captured by the onboarding interview, saved as confirmed. Null when storage is blocked. */
-export function saveOnboardingAnswers(session: Session, now = Date.now()): number | null {
+export function saveOnboardingAnswers(
+  session: Session,
+  now = Date.now()
+): number | null {
   return saveReviewed(factsFromOnboarding(session, now), now)
 }
 
@@ -65,12 +97,21 @@ const clamp = (p: ProfileItem): ProfileItem => ({
   form: p.form.slice(0, 300),
   key: p.key?.slice(0, 80),
   source: p.source?.slice(0, 60),
+  subjectKey: p.subjectKey?.slice(0, 80),
 })
 
 /** The facts as a JSON file the person can keep, or move to the side panel's own copy. */
-export function profileJson(items: readonly ProfileItem[], now = Date.now()): string {
+export function profileJson(
+  items: readonly ProfileItem[],
+  now = Date.now()
+): string {
   return JSON.stringify(
-    { format: PROFILE_FORMAT, version: 1, exportedAt: new Date(now).toISOString(), facts: items },
+    {
+      format: PROFILE_FORMAT,
+      version: 1,
+      exportedAt: new Date(now).toISOString(),
+      facts: items,
+    },
     null,
     2
   )
@@ -84,8 +125,12 @@ export function parseProfileJson(text: string): ProfileItem[] {
   } catch {
     throw new Error("That file is not a BolBharo profile.")
   }
-  const list = data && typeof data === "object" ? (data as { facts?: unknown }).facts : undefined
-  if (!Array.isArray(list)) throw new Error("That file is not a BolBharo profile.")
+  const list =
+    data && typeof data === "object"
+      ? (data as { facts?: unknown }).facts
+      : undefined
+  if (!Array.isArray(list))
+    throw new Error("That file is not a BolBharo profile.")
   const facts = list.filter(valid).map(clamp)
   if (!facts.length) throw new Error("That file has no facts in it.")
   return facts
@@ -140,10 +185,13 @@ export function clearProfile(): void {
  * exists, the rest are matched by the server, which only ever returns indexes into the saved list,
  * so a quote can never be invented.
  */
-export async function prefillFromProfile(session: Session, useModel: boolean): Promise<Session> {
+export async function prefillFromProfile(
+  session: Session,
+  useModel: boolean
+): Promise<Session> {
   // The onboarding interview asks exactly what the profile lacks, so nothing is pre-filled into it.
   if (session.source === "onboarding") return session
-  const saved = loadProfile()
+  const saved = loadProfile().filter((p) => p.kind !== "decision")
   if (!saved.length) return session
 
   const fills: PrefillFill[] = matchExact(session, saved)
@@ -153,8 +201,16 @@ export async function prefillFromProfile(session: Session, useModel: boolean): P
       const taken = new Set(fills.map((f) => `${f.fieldId}.${f.slot}`))
       const slots = session.fields.flatMap((f) =>
         f.slots
-          .filter((s) => s.value === null && !s.skipped && !taken.has(`${f.id}.${s.name}`))
-          .map((s) => ({ field: f.id, slot: s.name, ask: s.ask, question: f.label }))
+          .filter(
+            (s) =>
+              s.value === null && !s.skipped && !taken.has(`${f.id}.${s.name}`)
+          )
+          .map((s) => ({
+            field: f.id,
+            slot: s.name,
+            ask: s.ask,
+            question: f.label,
+          }))
       )
       const left = saved
         .map((p, i) => ({ i, question: p.label, slot: p.slot, value: p.value }))
@@ -174,7 +230,14 @@ export async function prefillFromProfile(session: Session, useModel: boolean): P
           for (const m of body.fills ?? []) {
             const item = saved[m.saved]
             const key = `${m.field}.${m.slot}`
-            if (!item || !legal.has(key) || taken.has(key) || seen.has(m.saved) || usedSaved.has(m.saved)) continue
+            if (
+              !item ||
+              !legal.has(key) ||
+              taken.has(key) ||
+              seen.has(m.saved) ||
+              usedSaved.has(m.saved)
+            )
+              continue
             seen.add(m.saved)
             taken.add(key)
             fills.push({ fieldId: m.field, slot: m.slot, item })
@@ -215,14 +278,19 @@ export function setSyncEnabled(on: boolean): void {
  * After a local edit, the account follows when this device syncs. A removal clears the account first,
  * because the account keeps the newest of every fact and would otherwise hand the removed one back.
  */
-export async function afterLocalChange(removed: boolean): Promise<boolean | null> {
+export async function afterLocalChange(
+  removed: boolean
+): Promise<boolean | null> {
   if (!syncEnabled()) return null
   if (removed && !(await deleteSynced())) return false
   return pushProfile()
 }
 
 /** One call to the profile route. The facts it returns, or null when it could not be done. */
-async function remote(method: "GET" | "PUT" | "DELETE", items?: ProfileItem[]): Promise<ProfileItem[] | null> {
+async function remote(
+  method: "GET" | "PUT" | "DELETE",
+  items?: ProfileItem[]
+): Promise<ProfileItem[] | null> {
   try {
     const res = await fetch("/api/profile", {
       method,
