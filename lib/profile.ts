@@ -1,5 +1,6 @@
 import {
   applyPrefill,
+  derivedValue,
   matchExact,
   mergeNewest,
   mergeProfile,
@@ -13,6 +14,9 @@ import type { ProfileItem, Session } from "./types"
 export const PROFILE_FORMAT = "bolbharo.profile"
 
 const KEY = "bolbharo.profile.v1"
+
+/** How many saved facts one matching call may look at. Groq limits tokens per minute, so the call stays small. */
+const MODEL_FACTS = 90
 
 const FORM_SPECIFIC = /why|motivat|cover letter|join us|this role|this company|this position|this job/i
 
@@ -209,24 +213,26 @@ export async function prefillMatches(session: Session, all: readonly ProfileItem
   const fills: PrefillFill[] = matchExact(session, saved)
   if (useModel) {
     try {
-      const usedSaved = new Set(fills.map((f) => saved.indexOf(f.item)))
       const taken = new Set(fills.map((f) => `${f.fieldId}.${f.slot}`))
-      const slots = session.fields.flatMap((f) =>
-        f.slots
-          .filter(
-            (s) =>
-              s.value === null && !s.skipped && !taken.has(`${f.id}.${s.name}`)
-          )
-          .map((s) => ({
-            field: f.id,
-            slot: s.name,
-            ask: s.ask,
-            question: f.label,
-          }))
-      )
-      const left = saved
-        .map((p, i) => ({ i, question: p.label, slot: p.slot, value: p.value }))
-        .filter((p) => !usedSaved.has(p.i))
+      const slots = session.fields
+        .flatMap((f) =>
+          f.slots
+            .filter((s) => s.value === null && !s.skipped && !taken.has(`${f.id}.${s.name}`))
+            .map((s) => ({ field: f.id, slot: s.name, ask: s.ask, question: f.label }))
+        )
+        .slice(0, 80)
+      // The model sees the plain facts (name, email, college...) first, trimmed, so the call stays small.
+      const pool = saved
+        .map((p, i) => ({ p, i }))
+        .sort((x, y) => Number(Boolean(y.p.key && !y.p.key.includes(":"))) - Number(Boolean(x.p.key && !x.p.key.includes(":"))))
+        .slice(0, MODEL_FACTS)
+      const left = pool.map(({ p, i }) => ({
+        i,
+        question: p.label,
+        slot: p.slot,
+        value: p.value.slice(0, 120),
+        ...(p.key ? { key: p.key } : {}),
+      }))
       if (slots.length && left.length) {
         const res = await fetch("/api/prefill", {
           method: "POST",
@@ -235,24 +241,19 @@ export async function prefillMatches(session: Session, all: readonly ProfileItem
         })
         if (res.ok) {
           const body = (await res.json()) as {
-            fills?: { field: string; slot: string; saved: number }[]
+            fills?: { field: string; slot: string; saved: number; value?: string }[]
           }
           const legal = new Set(slots.map((s) => `${s.field}.${s.slot}`))
-          const seen = new Set<number>()
+          const inPool = new Set(pool.map((x) => x.i))
           for (const m of body.fills ?? []) {
-            const item = saved[m.saved]
+            const item = inPool.has(m.saved) ? saved[m.saved] : undefined
             const key = `${m.field}.${m.slot}`
-            if (
-              !item ||
-              !legal.has(key) ||
-              taken.has(key) ||
-              seen.has(m.saved) ||
-              usedSaved.has(m.saved)
-            )
-              continue
-            seen.add(m.saved)
+            if (!item || !legal.has(key) || taken.has(key)) continue
+            // The value may be a part of the fact (a first name), never more than the fact holds.
+            const value = m.value ? derivedValue(item, m.value) : item.value
+            if (!value) continue
             taken.add(key)
-            fills.push({ fieldId: m.field, slot: m.slot, item })
+            fills.push({ fieldId: m.field, slot: m.slot, item: value === item.value ? item : { ...item, value } })
           }
         }
       }

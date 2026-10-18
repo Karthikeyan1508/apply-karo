@@ -9,6 +9,7 @@ const autofillButton = document.getElementById("autofill")
 const micButton = document.getElementById("mic")
 const appInput = document.getElementById("appUrl")
 let appOrigin = ""
+let questionCount = 0
 
 const say = (text) => (status.textContent = text)
 
@@ -56,6 +57,7 @@ async function readPage(autofill) {
       url: top.result.url,
       fields: frames.flatMap((r) => r.result.fields.map((f) => ({ ...f, ref: `${r.frameId}:${f.ref}` }))),
     }
+    questionCount = form.fields.length
     say(`Read ${form.fields.length} questions.`)
     frame.contentWindow.postMessage({ type: "bolbharo:form", form, autofill }, appOrigin)
   } catch (e) {
@@ -96,7 +98,8 @@ window.addEventListener("message", async (e) => {
   if (e.source !== frame.contentWindow || e.origin !== appOrigin || e.data?.type !== "bolbharo:fill") return
   try {
     const result = await fill(Array.isArray(e.data.fields) ? e.data.fields : [])
-    say(`Filled ${result.filled}. Check the page, then submit it yourself.`)
+    const of = questionCount ? ` of ${questionCount}` : ""
+    say(`Filled ${result.filled}${of}. The rest is for the interview. Check the page, then submit it yourself.`)
     frame.contentWindow.postMessage({ type: "bolbharo:filled", ...result }, appOrigin)
   } catch (err) {
     say(`Couldn't fill the page (${err instanceof Error ? err.message : "error"}).`)

@@ -34,7 +34,7 @@ function nameOf(item: ProfileItem): string {
  */
 export function findGaps(facts: readonly ProfileItem[]): Gap[] {
   const have = new Set(facts.map((f) => f.key).filter(Boolean))
-  const canon: Gap[] = CHECKLIST.filter((c) => !have.has(c.key)).map((c) => ({
+  const canon: Gap[] = CHECKLIST.filter((c) => c.ask && !have.has(c.key)).map((c) => ({
     key: c.key,
     label: c.label,
     ask: c.ask,

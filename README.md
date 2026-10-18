@@ -171,6 +171,12 @@ Checked here: with `ELEVENLABS_API_KEY` set, `/api/voice/session` returns `mode:
 
 Palette sampled from the reference: forest `#081800`, tiles `#131e09` / `#192d0b`, lime `#e0f16e` / `#daed72` / `#cae23d`, cream `#e9f8b8`, olive `#648600`. Archivo throughout (variable weight and width: wide and heavy, in capitals, for display type) with Geist Mono for small labels. Corners are 2px everywhere and there are no italics. Lime blocks carry the key numbers and the main form card, frosted glass panels sit over a slow noise shader, and the voice orb is a second shader ringed by a live frequency dial. Dark is the default, light is a toggle (or press `d`). Motion uses anime.js and respects `prefers-reduced-motion`.
 
+## Finding the details, and matching them to a form
+
+Onboarding finds a person's contact details and links by pattern first (`lib/profile-patterns.ts`: email, phone, LinkedIn, GitHub, the name at the top of the resume, a labelled city), each quoted exactly, so they never depend on the model. The model then reads the rest and is told to return every canonical field the text states (name, college, degree, branch, graduation year, CGPA, skills, every job and project). A kept resume can be read again from the Profile screen with the current reader.
+
+At form time a question is matched to a saved fact by its meaning. Free matching covers common wording (`lib/profile-keys.ts`: "Mobile No.", "Institute", "Passing year"...) and first and last name from the full name; the model matches the rest and may return a part of a fact (a first name, a year, the digits of a phone number) which is accepted only if every word and number in it is in the fact (`derivedValue`). One fact can fill several questions.
+
 ## Ready before answering
 
 Before any answer is filled, one model call (`/api/readiness`, `lib/readiness.ts`) checks each question of the form: is it understood, and is there enough (the saved profile, the form's notes) to answer it. A question that is unclear or missing something shows "Needs" or "Unclear" in the Plan, is marked `not ready` in the plan the agent gets (so it asks about exactly that first), and is held back from Autofill. The agent's context also carries a digest of what is already known about the person (`lib/profile-digest.ts`: resume, GitHub, earlier forms), as background only; it still cannot record any of it as something they said. A failed check never blocks the interview.

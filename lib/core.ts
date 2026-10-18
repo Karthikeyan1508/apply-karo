@@ -421,6 +421,36 @@ export function mergeNewest(
 }
 
 /**
+ * A value taken from part of a saved fact: the first name out of a full name, a year out of a date, the
+ * digits of a phone number. It is allowed only when every word, and every digit run, of the value really
+ * appears in the fact and its quote, so a derived value can never contain something the person did not give.
+ */
+export function derivedValue(item: Pick<ProfileItem, "value" | "quote">, value: string): string | null {
+  const v = value.trim()
+  if (!v || v.length > 300) return null
+  if (norm(v) === norm(item.value)) return item.value
+  const hay = `${item.value} ${item.quote}`.toLowerCase()
+  const words = v.toLowerCase().split(/[^\p{L}\p{N}]+/u).filter(Boolean)
+  if (words.length && words.every((w) => hay.includes(w))) return v
+  const digits = v.replace(/\D/g, "")
+  return digits.length >= 4 && hay.replace(/\D/g, "").includes(digits) ? v : null
+}
+
+const FIRST_NAME = /\b(first|given|fore)\s*-?name\b/i
+const LAST_NAME = /\b(last|sur|family)\s*-?name\b/i
+
+/** The first or last name out of the saved full name, for a question that asks for only that part. */
+function namePart(label: string, full: ProfileItem | undefined): ProfileItem | undefined {
+  if (!full || /\b(company|college|school|father|mother|guardian|reference|referee)\b/i.test(label)) return undefined
+  const words = full.value.trim().split(/\s+/)
+  const first = FIRST_NAME.test(label)
+  const last = !first && LAST_NAME.test(label)
+  if (!first && !last) return undefined
+  if (last && words.length < 2) return undefined
+  return { ...full, value: first ? words[0] : words[words.length - 1] }
+}
+
+/**
  * Free matching: the same question wording and slot. A single-answer question also matches a saved
  * fact with the same canonical key (for example "Your email" and the `email` fact).
  */
@@ -439,7 +469,8 @@ export function matchExact(
       const canon = f.slots.length === 1 ? keyOf(f.label) : null
       const item =
         byKey.get(profileKey(f.label, s.name)) ??
-        (canon ? byCanon.get(canon) : undefined)
+        (canon ? byCanon.get(canon) : undefined) ??
+        (f.slots.length === 1 ? namePart(f.label, byCanon.get("full_name")) : undefined)
       return item ? [{ fieldId: f.id, slot: s.name, item }] : []
     })
   )

@@ -1,4 +1,5 @@
 import type { Doc } from "./document"
+import { patternFacts } from "./profile-patterns"
 import { groundFacts, type RawFact, type SourceText } from "./profile-ground"
 import { validGrillQuestions, type GrillQuestion } from "./profile-grill"
 import type { ApiError, ProfileItem } from "./types"
@@ -175,7 +176,8 @@ export async function readSources(
   // Links first, so a link wins over anything the model said about the same key.
   const resumeName = inputs.resume ? shortName(inputs.resume.name) : null
   // What the resume says is kept for filling forms, not listed back to the person.
-  const facts = groundFacts([...links, ...extracted], sources, now).map((f) =>
+  // Contact details and links are found by pattern, so they never depend on the model getting them right.
+  const facts = groundFacts([...links, ...patternFacts(sources), ...extracted], sources, now).map((f) =>
     resumeName && f.source === resumeName ? { ...f, hidden: true } : f
   )
   return { facts, notes }

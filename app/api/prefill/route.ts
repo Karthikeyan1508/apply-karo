@@ -20,6 +20,7 @@ const Body = z.object({
         question: z.string().max(400),
         slot: z.string().max(60),
         value: z.string().max(1000),
+        key: z.string().max(80).optional(),
       })
     )
     .max(300),

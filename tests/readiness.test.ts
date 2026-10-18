@@ -132,9 +132,9 @@ describe("readiness checks", () => {
         })
       )
       vi.stubGlobal("fetch", fetchMock)
-      const out = await checkReadiness(page(), [
-        fact("Full name", "Asha Patil"),
-      ])
+      const open = page()
+      open.fields.forEach((f) => (f.slots[0].value = null))
+      const out = await checkReadiness(open, [fact("Full name", "Asha Patil")])
       expect(out.fields[0].check?.needs).toBe("salary")
       const sent = JSON.parse(
         (fetchMock.mock.calls[0] as unknown as [string, RequestInit])[1]

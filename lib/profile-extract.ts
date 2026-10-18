@@ -26,7 +26,9 @@ const FactsSchema = z.object({
 const SYSTEM = `You read one part of a person's own documents (a resume, a GitHub profile or a LinkedIn profile) and list the facts about that person that the text states outright. These facts pre-fill job and loan applications.
 
 For each fact return:
-- key: a canonical key when one fits: full_name, email, phone, city, linkedin, github, portfolio, current_company, current_role, years_experience, highest_education, college, graduation_year, skills, notice_period, current_ctc, expected_ctc, work_authorisation, preferred_roles, why_role, headline_achievement. For a list item use a prefix and a short slug: experience:<slug>, project:<slug>, education:<slug>, skill:<slug>, certification:<slug>, achievement:<slug>, language:<slug>.
+- key: a canonical key when one fits: full_name, email, phone, city, linkedin, github, portfolio, current_company, current_role, years_experience, highest_education, college, branch, cgpa, graduation_year, skills, notice_period, current_ctc, expected_ctc, work_authorisation, preferred_roles, why_role, headline_achievement. For a list item use a prefix and a short slug: experience:<slug>, project:<slug>, education:<slug>, skill:<slug>, certification:<slug>, achievement:<slug>, language:<slug>.
+
+Be thorough. Return one fact for every canonical key the text states, even when it sits in a header or a small line: the person's name, email, phone, city, links, college, degree (highest_education), branch, graduation_year, cgpa, skills (one fact listing them), and current company and role. Also return one fact for every job (experience:), every project (project:), every degree (education:), every certification and every award or achievement. If the person is a student, current_company and current_role may be an internship or none: only return what is stated. Prefer several short facts over one long one.
 - label: a short human label, for example "Project: Smart ledger" or "Experience: Backend engineer at Acme".
 - value: the fact in a short clean form. Numbers as digits.
 - quote: copy the exact words from the text that support the value, character for character. Required. Never paraphrase.

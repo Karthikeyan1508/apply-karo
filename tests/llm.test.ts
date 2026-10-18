@@ -84,11 +84,11 @@ describe("Groq client", () => {
   })
 
   it("matches saved facts by index", async () => {
-    vi.stubGlobal("fetch", vi.fn().mockResolvedValue(reply({ fills: [{ field: "F1", slot: "name", saved: 0 }] })))
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue(reply({ fills: [{ field: "F1", slot: "name", saved: 0, value: "Asha" }] })))
     const fills = await matchSavedFacts({
       slots: [{ field: "F1", slot: "name", ask: "Your name?", question: "Name" }],
       saved: [{ i: 0, question: "Full name", slot: "name", value: "Asha Patil" }],
     })
-    expect(fills).toEqual([{ field: "F1", slot: "name", saved: 0 }])
+    expect(fills).toEqual([{ field: "F1", slot: "name", saved: 0, value: "Asha" }])
   })
 })

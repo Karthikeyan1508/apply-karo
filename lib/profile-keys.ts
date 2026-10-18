@@ -16,7 +16,7 @@ export interface CanonicalField {
   key: string
   /** The question as a form would ask it. Also the label of the stored fact. */
   label: string
-  /** The one spoken question that fills it, when it is missing. */
+  /** The one spoken question that fills it, when it is missing. Empty: read from documents, never asked. */
   ask: string
   section: Section
   /** Matches a form question that asks for this field. */
@@ -30,7 +30,7 @@ export const CHECKLIST: CanonicalField[] = [
     label: "Full name",
     ask: "What is your full name?",
     section: "Identity",
-    match: /^(your\s+)?(legal\s+|full\s+)?name\??$|full name/i,
+    match: /^(your\s+|candidate'?s?\s+|applicant'?s?\s+|student'?s?\s+)?(legal\s+|full\s+|complete\s+)?name\??$|full name|complete name/i,
   },
   {
     key: "email",
@@ -44,14 +44,14 @@ export const CHECKLIST: CanonicalField[] = [
     label: "Phone number",
     ask: "What is your phone number?",
     section: "Identity",
-    match: /phone|mobile|contact number/i,
+    match: /phone|mobile|contact (no|number|num)\b|whatsapp|\bcell\b/i,
   },
   {
     key: "city",
     label: "City",
     ask: "Which city are you based in?",
     section: "Identity",
-    match: /\b(city|current location|based in)\b/i,
+    match: /^(?!.*\b(preferred|job|work|office|interview|desired|permanent)\b).*\b(city|town|current location|location|based in|residing)\b/i,
   },
   {
     key: "linkedin",
@@ -93,35 +93,50 @@ export const CHECKLIST: CanonicalField[] = [
     label: "Years of experience",
     ask: "How many years of work experience do you have?",
     section: "Experience",
-    match: /years? of (total )?(work )?experience|experience in years/i,
+    match: /years? of (total |relevant )?(work )?experience|experience in years|total experience/i,
   },
   {
     key: "highest_education",
     label: "Highest education",
     ask: "What is your highest education, such as B.Tech or MBA?",
     section: "Education",
-    match: /highest (education|qualification)|\bdegree\b/i,
+    match: /highest (education|qualification)|\bdegree\b|\bqualification\b/i,
   },
   {
     key: "college",
     label: "College or university",
     ask: "Which college or university did you study at?",
     section: "Education",
-    match: /college|university|institute/i,
+    match: /college|university|institute|alma mater/i,
+  },
+  {
+    key: "branch",
+    label: "Branch or stream",
+    // No spoken question: it is read from the resume when it is there, and not asked for when it is not.
+    ask: "",
+    section: "Education",
+    match: /\b(branch|stream|specialli?[sz]ation|major|discipline)\b/i,
+  },
+  {
+    key: "cgpa",
+    label: "CGPA or percentage",
+    ask: "",
+    section: "Education",
+    match: /\b(cgpa|gpa|aggregate|percentage|grade point)\b/i,
   },
   {
     key: "graduation_year",
     label: "Graduation year",
     ask: "In which year did you graduate?",
     section: "Education",
-    match: /graduation year|year of (graduation|passing)/i,
+    match: /graduation year|year of (graduation|passing|completion)|passing (out )?year|batch/i,
   },
   {
     key: "skills",
     label: "Key skills",
     ask: "What are your main skills?",
     section: "Skills",
-    match: /\bskills?\b|tech stack/i,
+    match: /\bskills?\b|tech(nical)? stack|technologies|programming languages/i,
   },
   {
     key: "notice_period",

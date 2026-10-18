@@ -37,12 +37,15 @@ export function notReadyText(session: Session): string {
  */
 export async function checkReadiness(session: Session, facts: readonly ProfileItem[]): Promise<Session> {
   if (session.source === "onboarding" || session.source === "demo" || !session.fields.length) return session
+  // A question the saved profile already answered needs no check: it is ready by construction.
+  const open = session.fields.filter((f) => f.slots.some((s) => s.value === null || s.fromProfile))
+  if (!open.length) return session
   try {
     const res = await fetch("/api/readiness", {
       method: "POST",
       headers: { "content-type": "application/json" },
       body: JSON.stringify({
-        questions: session.fields.map((f) => ({ id: f.id, label: f.label, kind: f.kind, options: f.options, intent: f.intent })),
+        questions: open.map((f) => ({ id: f.id, label: f.label, kind: f.kind, options: f.options, intent: f.intent })),
         known: profileDigest(facts),
         notes: `${session.title}. ${session.context}`.slice(0, 3900),
       }),
