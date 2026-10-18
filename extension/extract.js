@@ -142,10 +142,21 @@
     el.setAttribute("data-bolbharo-ref", add({ label, kind: long ? "long_text" : "text", options: [], multi: false, required: isRequired(el, label) }))
   }
 
+  // File uploads cannot be filled from here. Report them so the person is told to attach them.
+  const files = [...document.querySelectorAll("input[type='file']")].map((el) => statedLabel(el) || nearbyLabel(el, []) || "A file upload")
+  // Google Forms draws its upload as a button, not an input.
+  for (const b of document.querySelectorAll("[role='button']")) {
+    if (/^(add file|upload|choose file|attach)/i.test(text(b))) {
+      const l = strip(nearbyLabel(b, [text(b)]))
+      if (l && !files.includes(l)) files.push(l)
+    }
+  }
+
   const heading = document.querySelector("h1,[role='heading'][aria-level='1']")
   return {
     title: clean((heading && text(heading)) || document.title).slice(0, 200),
     url: location.href,
+    files: [...new Set(files.map(strip))].slice(0, 5),
     fields: fields.map((f) => ({ options: [], multi: false, required: false, ...f })),
   }
 })()

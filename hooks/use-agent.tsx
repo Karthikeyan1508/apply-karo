@@ -19,7 +19,7 @@ import {
 import { toast } from "sonner"
 import { classifyAgentError, type AgentError } from "@/lib/agent-errors"
 import { agentLanguage, buildDynamicVariables, openSlotsText } from "@/lib/core"
-import { briefing, relateProject, withProjectChoice } from "@/lib/github-client"
+import { briefing, loadLink, loadRepos, relateProject, withProjectChoice } from "@/lib/github-client"
 import { isProjectsCommand } from "@/lib/repos"
 import { loadProfile } from "@/lib/profile"
 import { knownNote } from "@/lib/profile-digest"
@@ -222,9 +222,15 @@ function AgentInner({ children }: { children: ReactNode }) {
     (text: string) => {
       const s = store.getState().session
       if (!s || !isProjectsCommand(text)) return
-      const next = withProjectChoice(s)
-      if (next.projectChoice) store.dispatch({ type: "projects", choice: next.projectChoice })
-      else toast.message("No project question to answer here, or GitHub is not connected.")
+      const next = withProjectChoice(s, true)
+      if (next.projectChoice) return store.dispatch({ type: "projects", choice: next.projectChoice })
+      const why = !loadLink()
+        ? "GitHub is not connected. Open Profile and connect GitHub first, then type /projects again."
+        : !loadRepos().length
+          ? "I found no repos on your GitHub account."
+          : "There is no open written question here to answer from your repos."
+      store.dispatch({ type: "utterance", role: "agent", text: why })
+      toast.message(why)
     },
     [store]
   )

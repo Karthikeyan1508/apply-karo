@@ -92,6 +92,7 @@ describe("recognising what a question asks for", () => {
     ["Candidate Name", "full_name"],
     ["Mobile No.", "phone"],
     ["WhatsApp number", "phone"],
+    ["WhatsApp No", "phone"],
     ["Email ID", "email"],
     ["Current Location", "city"],
     ["Institute", "college"],
@@ -309,5 +310,11 @@ describe("readiness for questions the profile already answered", () => {
     s.fields[0].slots[0].value = "Karthikeyan"
     expect(await checkReadiness(s, [])).toBe(s)
     expect(f).not.toHaveBeenCalled()
+  })
+})
+
+describe("a label that only mentions WhatsApp", () => {
+  it("is not a phone number", () => {
+    expect(keyOf("Agent link — must open without signup (WhatsApp, web link or app)")).not.toBe("phone")
   })
 })

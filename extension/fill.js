@@ -14,8 +14,10 @@
   }
 
   /** The option whose label is the wanted text: exact first, then one contains the other. */
+  const ZERO = /^(none|nil|no|zero|nothing|0)\b/
   function pick(options, want) {
-    const w = norm(want)
+    // "None" and "No" mean the option "0" for a count.
+    const w = ZERO.test(norm(want)) && options.some((o) => norm(o.label) === "0") ? "0" : norm(want)
     return options.find((o) => norm(o.label) === w) || options.find((o) => w && (norm(o.label).includes(w) || w.includes(norm(o.label)))) || null
   }
 

@@ -44,7 +44,7 @@ export const CHECKLIST: CanonicalField[] = [
     label: "Phone number",
     ask: "What is your phone number?",
     section: "Identity",
-    match: /phone|mobile|contact (no|number|num)\b|whatsapp|\bcell\b/i,
+    match: /phone|mobile|contact (no|number|num)\b|whatsapp (no|num|number|contact)|\bcell\b/i,
   },
   {
     key: "city",

@@ -38,6 +38,8 @@ async function inject(tabId, file) {
   return chrome.scripting.executeScript({ target: { tabId, allFrames: true }, files: [file] })
 }
 
+let lastForm = { fields: [], files: [] }
+
 /** Read the form on the tab and hand it to the app. With `autofill` the app also asks for the page to be filled. */
 async function readPage(autofill) {
   readButton.disabled = autofillButton.disabled = true
@@ -58,6 +60,7 @@ async function readPage(autofill) {
       fields: frames.flatMap((r) => r.result.fields.map((f) => ({ ...f, ref: `${r.frameId}:${f.ref}` }))),
     }
     questionCount = form.fields.length
+    lastForm = { fields: form.fields, files: frames.flatMap((r) => r.result.files || []) }
     say(`Read ${form.fields.length} questions.`)
     frame.contentWindow.postMessage({ type: "bolbharo:form", form, autofill }, appOrigin)
   } catch (e) {
@@ -100,7 +103,15 @@ window.addEventListener("message", async (e) => {
     const result = await fill(Array.isArray(e.data.fields) ? e.data.fields : [])
     const of = questionCount ? ` of ${questionCount}` : ""
     say(`Filled ${result.filled}${of}. The rest is for the interview. Check the page, then submit it yourself.`)
-    frame.contentWindow.postMessage({ type: "bolbharo:filled", ...result }, appOrigin)
+    // Say what was not filled and why, so nothing is left silently empty.
+    const sent = new Set((Array.isArray(e.data.fields) ? e.data.fields : []).map((f) => f.ref))
+    const bad = new Set(result.skipped)
+    const left = lastForm.fields.filter((f) => !sent.has(f.ref) || bad.has(f.ref))
+    const notes = [
+      ...lastForm.files.map((l) => `"${l}" is a file upload. I cannot attach files, so please upload it yourself.`),
+      ...left.map((f) => (f.kind === "choice" ? `"${f.label}" is a choice I could not pick. Tell me the answer, or select it yourself.` : `"${f.label}" is still empty. Tell me the answer.`)),
+    ]
+    frame.contentWindow.postMessage({ type: "bolbharo:filled", ...result, notes }, appOrigin)
   } catch (err) {
     say(`Couldn't fill the page (${err instanceof Error ? err.message : "error"}).`)
     frame.contentWindow.postMessage({ type: "bolbharo:filled", filled: 0, skipped: [] }, appOrigin)

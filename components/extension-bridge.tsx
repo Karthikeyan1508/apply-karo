@@ -88,9 +88,21 @@ export function ExtensionBridge() {
       }
     }
 
+    function onFilled(e: MessageEvent) {
+      if (e.source !== window.parent || e.origin !== parent || e.data?.type !== "bolbharo:filled" || !Array.isArray(e.data.notes) || !e.data.notes.length) return
+      const lines = (e.data.notes as string[]).slice(0, 8).map((n) => `- ${n}`)
+      const text = [`Filled ${e.data.filled ?? 0}. Not done:`, ...lines].join("\n")
+      store.dispatch({ type: "utterance", role: "agent", text })
+      view.open("home")
+    }
+
+    window.addEventListener("message", onFilled)
     window.addEventListener("message", onMessage)
     window.parent.postMessage({ type: "bolbharo:ready" }, parent)
-    return () => window.removeEventListener("message", onMessage)
+    return () => {
+      window.removeEventListener("message", onMessage)
+      window.removeEventListener("message", onFilled)
+    }
     // The agent's controls change when a call starts; the listener only needs the stop at message time.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [store, view])

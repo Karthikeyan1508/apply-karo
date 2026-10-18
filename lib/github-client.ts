@@ -253,9 +253,11 @@ export function briefing(): string | null {
  * When GitHub is connected and the form asks about the person's projects, mark that question so the chat
  * asks which repos to use. Without a connection, or without such a question, the form is left as it is.
  */
-export function withProjectChoice(session: Session): Session {
+export function withProjectChoice(session: Session, asked = false): Session {
   if (session.source === "onboarding" || session.source === "demo" || !loadLink() || !loadRepos().length) return session
-  const field = session.fields.find((f) => isProjectQuestion(f) && f.slots.some((s) => s.value === null))
+  const open = (f: Session["fields"][number]) => f.slots.some((s) => s.value === null)
+  // Asked for outright: any open written answer will do when no question is about projects.
+  const field = session.fields.find((f) => isProjectQuestion(f) && open(f)) ?? (asked ? session.fields.find((f) => f.kind === "long_text" && open(f)) : undefined)
   return field ? { ...session, projectChoice: { fieldId: field.id, stage: "ask", repos: [], leftover: [] } } : session
 }
 
