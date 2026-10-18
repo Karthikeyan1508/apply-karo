@@ -116,6 +116,12 @@ export function PlanPanel({ className }: { className?: string }) {
                     <SlotChip key={s.name} slot={s} />
                   ))}
                 </div>
+                {f.check && !(f.check.understood && f.check.enough) && (
+                  <p className="mt-2.5 pl-8 text-xs leading-snug text-muted-foreground">
+                    <span className="label-caps text-foreground">{f.check.understood ? "Needs" : "Unclear"}</span>{" "}
+                    {f.check.needs || "I will ask you."}
+                  </p>
+                )}
                 <StrengthMeter field={f} className="mt-2.5 pl-8" />
               </div>
             )

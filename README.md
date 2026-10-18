@@ -171,6 +171,12 @@ Checked here: with `ELEVENLABS_API_KEY` set, `/api/voice/session` returns `mode:
 
 Palette sampled from the reference: forest `#081800`, tiles `#131e09` / `#192d0b`, lime `#e0f16e` / `#daed72` / `#cae23d`, cream `#e9f8b8`, olive `#648600`. Archivo throughout (variable weight and width: wide and heavy, in capitals, for display type) with Geist Mono for small labels. Corners are 2px everywhere and there are no italics. Lime blocks carry the key numbers and the main form card, frosted glass panels sit over a slow noise shader, and the voice orb is a second shader ringed by a live frequency dial. Dark is the default, light is a toggle (or press `d`). Motion uses anime.js and respects `prefers-reduced-motion`.
 
+## Ready before answering
+
+Before any answer is filled, one model call (`/api/readiness`, `lib/readiness.ts`) checks each question of the form: is it understood, and is there enough (the saved profile, the form's notes) to answer it. A question that is unclear or missing something shows "Needs" or "Unclear" in the Plan, is marked `not ready` in the plan the agent gets (so it asks about exactly that first), and is held back from Autofill. The agent's context also carries a digest of what is already known about the person (`lib/profile-digest.ts`: resume, GitHub, earlier forms), as background only; it still cannot record any of it as something they said. A failed check never blocks the interview.
+
+The resume file is kept in this browser (IndexedDB, `lib/resume-store.ts`) and shown on the Profile screen and after onboarding, with View, Download and Remove. It is not uploaded for storage.
+
 ## Autofill and the resume
 
 In the side panel, **Autofill** reads the page and types what the saved profile already answers into it, with no interview (`autofillPayload` in `lib/page-form.ts`). Details read from a resume are used for this but are never listed on the Profile screen or in the onboarding review: they are saved with `hidden: true` (export and import keep them). GitHub and LinkedIn facts stay visible.

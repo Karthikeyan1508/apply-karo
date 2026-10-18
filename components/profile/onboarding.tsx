@@ -1,6 +1,7 @@
 "use client"
 
 import { GithubConnect } from "./github-connect"
+import { ResumeCard } from "./resume-card"
 import {
   ArrowLeftIcon,
   ArrowRightIcon,
@@ -21,6 +22,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { useHealth } from "@/hooks/use-health"
 import { useInterviewStore } from "@/hooks/use-interview"
 import { uploadDocument, wordsIn, type Doc } from "@/lib/document"
+import { saveResume, textFile } from "@/lib/resume-store"
 import { findGaps, onboardingSession } from "@/lib/profile-gaps"
 import { grillSession } from "@/lib/profile-grill"
 import { SECTIONS, sectionOf } from "@/lib/profile-keys"
@@ -604,11 +606,11 @@ function Review({
           {toSave} to save
         </span>
         <div className="flex flex-wrap gap-2">
-          <Button variant="outline" className="h-11 px-4" onClick={onSaveOnly}>
-            Save, skip questions
+          <Button variant="outline" className="h-11 px-4" onClick={onSave}>
+            Save and answer a few questions
           </Button>
-          <Button className="h-11 px-5 font-semibold" onClick={onSave}>
-            Save and answer the rest <ArrowRightIcon />
+          <Button className="h-11 px-5 font-semibold" onClick={onSaveOnly}>
+            Save profile <ArrowRightIcon />
           </Button>
         </div>
       </div>
@@ -642,6 +644,7 @@ function Done({
           still missing, and you still approve every answer.
         </p>
       </div>
+      <ResumeCard />
       <ul className="panel grid grid-cols-2 gap-px overflow-hidden rounded-xl sm:grid-cols-3">
         {SECTIONS.filter((s) => sections[s]).map((s) => (
           <li
@@ -748,6 +751,10 @@ export function Onboarding() {
       return
     }
     if (syncEnabled()) void pushProfile()
+    // Keep the resume itself, so the profile can show it again.
+    if (inputs.resume) {
+      void saveResume(inputs.resume.file ?? textFile(inputs.resume.text), inputs.resume.file ? inputs.resume.name : `${inputs.resume.name}.txt`)
+    }
     if (startQuestions && llm) {
       try {
         const questions = await readGrill(everything)

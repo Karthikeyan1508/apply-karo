@@ -6,7 +6,8 @@ import { Logo } from "@/components/brand/logo"
 import { useAgent } from "@/hooks/use-agent"
 import { useInterviewStore } from "@/hooks/use-interview"
 import { autofillPayload, isExtensionOrigin, PageForm } from "@/lib/page-form"
-import { prefillFromProfile } from "@/lib/profile"
+import { loadProfile, prefillFromProfile } from "@/lib/profile"
+import { checkReadiness } from "@/lib/readiness"
 import type { ApiError, Session } from "@/lib/types"
 import { ProfileCard } from "@/components/profile/profile-card"
 import { useView } from "@/components/profile/view"
@@ -65,7 +66,8 @@ export function ExtensionBridge() {
         }
         // A call already running was briefed on the old form. End it so the next one starts on this one.
         agent.stop()
-        const session = await prefillFromProfile(body.session, true)
+        // Before anything is filled: is each question understood, and is there enough to answer it?
+        const session = await checkReadiness(await prefillFromProfile(body.session, true), loadProfile())
         store.dispatch({ type: "session", session })
         // A form from the page always opens the interview, even from the profile screen.
         view.open("home")

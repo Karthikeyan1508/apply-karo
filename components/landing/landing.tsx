@@ -35,7 +35,8 @@ import { coverage } from "@/lib/core"
 import { prefillFromDocument, uploadDocument, wordsIn, type Doc } from "@/lib/document"
 import { ago, clearSaved } from "@/lib/persist"
 import { CAPTURE_SNIPPET } from "@/lib/gforms"
-import { forgetProfile, prefillFromProfile } from "@/lib/profile"
+import { forgetProfile, loadProfile, prefillFromProfile } from "@/lib/profile"
+import { checkReadiness } from "@/lib/readiness"
 import type { ApiError, Health, Session } from "@/lib/types"
 import { cn } from "@/lib/utils"
 import { ProfileCard } from "@/components/profile/profile-card"
@@ -171,6 +172,8 @@ function SourceCard() {
           toast.warning("Couldn't use your resume", { description: e instanceof Error ? e.message : undefined })
         }
       }
+      // Before anything is filled: is each question understood, and is there enough to answer it?
+      if (health?.llm) session = await checkReadiness(session, loadProfile())
       store.dispatch({ type: "session", session })
     } catch {
       setError({ code: "NETWORK", message: "Couldn't reach the server. Is it running?" })

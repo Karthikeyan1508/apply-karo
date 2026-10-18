@@ -20,6 +20,7 @@ import {
 import { SECTIONS, sectionOf } from "@/lib/profile-keys"
 import type { ProfileItem } from "@/lib/types"
 import { FactCard } from "./fact-card"
+import { ResumeCard } from "./resume-card"
 import { ProfileFrame } from "./onboarding"
 import { useView } from "./view"
 
@@ -105,6 +106,8 @@ export function ProfileScreen() {
           .
         </p>
       </div>
+
+      <ResumeCard />
 
       <GithubConnect />
 

@@ -88,7 +88,7 @@ async function call(
 ): Promise<Response> {
   const headers: Record<string, string> = {
     accept: raw ? "application/vnd.github.raw" : "application/vnd.github+json",
-    "user-agent": "Apply करो",
+    "user-agent": "Apply-Karo",
     "x-github-api-version": "2022-11-28",
   }
   if (token) headers.authorization = `Bearer ${token}`

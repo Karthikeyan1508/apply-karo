@@ -5,6 +5,8 @@ export interface Doc {
   text: string
   /** Shown to the user as the source of each fact: a file name, or "your resume" for pasted text. */
   name: string
+  /** The uploaded file itself, when there was one, so it can be kept and shown again. */
+  file?: File
 }
 
 export const wordsIn = (text: string) => (text.trim() ? text.trim().split(/\s+/).length : 0)
@@ -25,7 +27,7 @@ export async function uploadDocument(file: File): Promise<Doc> {
     await fetch("/api/document", { method: "POST", body }),
     "Couldn't read that file."
   )
-  return { text, name: file.name }
+  return { text, name: file.name, file }
 }
 
 /**

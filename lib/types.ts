@@ -38,6 +38,8 @@ export interface FormField extends RawField {
   /** The user changed the draft by hand or by a rewrite request: never auto-redraft it. */
   edited: boolean
   flags: string[]
+  /** Whether the interviewer understood the question and has what it needs, checked before any answer is filled. */
+  check?: { understood: boolean; enough: boolean; needs: string }
   /** A bounded follow-up about a project or role, built from compact reviewed facts. */
   grill?: {
     subjectKey: string

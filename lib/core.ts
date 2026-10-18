@@ -188,7 +188,9 @@ export function planText(session: Session): string {
           return `${s.name}="${s.ask}"${mark}`
         })
         .join("; ")
-      return `${f.id} | ${f.label} | wants: ${f.intent || "a clear answer"} | slots: ${slots}`
+      // A question the interviewer was not ready for: say so, so it asks about exactly that first.
+      const hold = f.check && !(f.check.understood && f.check.enough) ? ` | not ready (${f.check.understood ? "missing" : "question unclear"}): ${f.check.needs || "ask the person"}` : ""
+      return `${f.id} | ${f.label} | wants: ${f.intent || "a clear answer"} | slots: ${slots}${hold}`
     })
     .join("\n")
 }

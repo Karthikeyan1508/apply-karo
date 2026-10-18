@@ -20,6 +20,8 @@ import { toast } from "sonner"
 import { classifyAgentError, type AgentError } from "@/lib/agent-errors"
 import { agentLanguage, buildDynamicVariables, openSlotsText } from "@/lib/core"
 import { briefing, relateProject } from "@/lib/github-client"
+import { loadProfile } from "@/lib/profile"
+import { knownNote } from "@/lib/profile-digest"
 import { demoSteps } from "@/lib/demo"
 import { bandsFrom, BANDS, fakeBands } from "@/lib/spectrum"
 import { rewriteField } from "@/lib/draft-client"
@@ -274,8 +276,15 @@ function AgentInner({ children }: { children: ReactNode }) {
       setChannel(kind)
 
       const language = agentLanguage(session)
+      // The agent also gets what is already known about the person, so it understands each question
+      // against their real background instead of asking from nothing.
+      const vars = buildDynamicVariables(session)
+      const known = knownNote(loadProfile())
+      if (known) vars.context = `${vars.context === "none" ? "" : `${vars.context}
+
+`}${known}`
       const common = {
-        dynamicVariables: buildDynamicVariables(session),
+        dynamicVariables: vars,
         clientTools: tools,
         textOnly: kind === "text",
         ...(language ? { overrides: { agent: { language } } } : {}),

@@ -41,6 +41,8 @@ export function fillPayload(
  */
 export function autofillPayload(session: Session): { ref: string; value: string }[] {
   return session.fields
+    // Only questions the interviewer understood and has enough to answer.
+    .filter((f) => !f.check || (f.check.understood && f.check.enough))
     .filter((f) => f.entryId && f.slots.length === 1 && f.slots[0].value !== null && !f.slots[0].fromProfile)
     .map((f) => ({ ref: f.entryId as string, value: (f.slots[0].value as string).trim() }))
     .filter((x) => x.value)
