@@ -1,5 +1,6 @@
 import { formsConfig } from "@/lib/auth"
 import { neonAuth } from "@/lib/auth/server"
+import { githubClientId } from "@/lib/github-device"
 import { llmConfigured } from "@/lib/llm"
 import { profileStore } from "@/lib/profile-store"
 import type { Health } from "@/lib/types"
@@ -13,6 +14,7 @@ export async function GET() {
     auth,
     forms: auth && Boolean(formsConfig()),
     sync: auth && Boolean(profileStore()),
+    github: Boolean(githubClientId()),
   }
   return Response.json(health)
 }

@@ -191,7 +191,8 @@ export function ReviewPanel({ className }: { className?: string }) {
   const saved = useProfileCount()
   const auth = useAuth()
   const syncing = useSyncEnabled() && Boolean(auth?.user && auth.sync)
-  const [remember, setRemember] = useState(false)
+  // In the side panel the point is reuse, so facts are remembered unless the person turns it off.
+  const [remember, setRemember] = useState(() => typeof window !== "undefined" && window.parent !== window)
 
   if (!session) return null
   const missing = missingRequired(session)

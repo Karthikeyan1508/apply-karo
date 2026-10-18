@@ -11,6 +11,7 @@ import {
   DYNAMIC_VARIABLE_DEFAULTS,
 } from "@/lib/agent-prompt"
 import { formsConfig } from "@/lib/auth"
+import { githubClientId } from "@/lib/github-device"
 import { neonAuth } from "@/lib/auth/server"
 import { profileStore } from "@/lib/profile-store"
 import { cn } from "@/lib/utils"
@@ -64,6 +65,7 @@ export default function SetupPage() {
   const auth = Boolean(neonAuth())
   const forms = auth && Boolean(formsConfig())
   const sync = auth && Boolean(profileStore())
+  const github = Boolean(githubClientId())
 
   const toolsText = AGENT_TOOLS.map(
     (t) =>
@@ -110,6 +112,7 @@ export default function SetupPage() {
           <Status ok={auth} title="Google sign-in (optional)" hint="NEON_AUTH_BASE_URL, NEON_AUTH_COOKIE_SECRET" />
           <Status ok={forms} title="Private forms (optional)" hint="GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, AUTH_SECRET" />
           <Status ok={sync} title="Synced facts (optional)" hint="DATABASE_URL" />
+          <Status ok={github} title="GitHub connect (optional)" hint="GITHUB_CLIENT_ID" />
         </div>
 
         <Step n="01" title="Groq key (reads forms, writes drafts)">
@@ -250,6 +253,38 @@ export default function SetupPage() {
             link. Neon Auth&apos;s sign-in cannot ask for the Forms permission, which is why connecting
             Forms is its own step with its own Google client. While that consent screen is in Testing,
             Google expires the connection after 7 days and shows an &quot;unverified app&quot; warning.
+          </p>
+        </Step>
+        <Step n="07" title="Optional: connect GitHub (all repos)">
+          <p>
+            Connecting a GitHub account lets Apply करो read every repo it can see, private ones included. When someone
+            describes a project in an interview or a form asks about one, the matching repo answers what it can (what it
+            is, languages, how many commits are theirs, the README) and only the rest is asked. It uses GitHub&apos;s
+            device flow: a short code, no redirect and no secret, so it also works inside the extension&apos;s side panel.
+          </p>
+          <ol className="mt-2">
+            <li>
+              On GitHub open <a href="https://github.com/settings/developers">Settings, Developer settings, OAuth Apps</a>{" "}
+              and press <strong>New OAuth App</strong>. Any name, homepage <code>http://localhost:3100</code>, and the same
+              address as the callback URL.
+            </li>
+            <li>
+              After creating it, tick <strong>Enable Device Flow</strong> and save. Copy the <strong>Client ID</strong>.
+              You do not need a client secret.
+            </li>
+            <li>
+              Put it in <code>.env.local</code> as <code>GITHUB_CLIENT_ID=</code>, restart the dev server, then press{" "}
+              <strong>Connect GitHub</strong> on the Profile screen or in onboarding and type the code on GitHub.
+            </li>
+            <li>
+              Repos owned by an organisation also need the organisation to approve the app (the organisation&apos;s Settings,
+              Third-party access).
+            </li>
+          </ol>
+          <p className="mt-3">
+            Good to know: an OAuth app can only ask for the <code>repo</code> scope to see private repositories, and that scope
+            can also write. Apply करो only reads, and the token stays in this browser (the side panel keeps its own copy).
+            Disconnect forgets it here; revoke the app on GitHub to cancel it everywhere.
           </p>
         </Step>
       </main>

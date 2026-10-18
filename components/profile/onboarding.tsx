@@ -1,5 +1,6 @@
 "use client"
 
+import { GithubConnect } from "./github-connect"
 import {
   ArrowLeftIcon,
   ArrowRightIcon,
@@ -397,6 +398,7 @@ function Sources({
             className="h-11 px-3"
           />
         </label>
+        <GithubConnect className="mt-3" />
       </SourceBlock>
 
       <SourceBlock

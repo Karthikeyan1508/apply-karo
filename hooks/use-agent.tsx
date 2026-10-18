@@ -18,7 +18,8 @@ import {
 } from "react"
 import { toast } from "sonner"
 import { classifyAgentError, type AgentError } from "@/lib/agent-errors"
-import { agentLanguage, buildDynamicVariables } from "@/lib/core"
+import { agentLanguage, buildDynamicVariables, openSlotsText } from "@/lib/core"
+import { briefing, relateProject } from "@/lib/github-client"
 import { demoSteps } from "@/lib/demo"
 import { bandsFrom, BANDS, fakeBands } from "@/lib/spectrum"
 import { rewriteField } from "@/lib/draft-client"
@@ -209,6 +210,28 @@ function AgentInner({ children }: { children: ReactNode }) {
     }
   }, [store])
 
+  // Repos already matched this call, so one mention is not matched again on every later sentence.
+  const seenRepos = useRef(new Set<string>())
+
+  /** The person said something: if it is about one of their GitHub repos, bring that repo's facts into the call. */
+  const relate = useCallback(
+    async (text: string) => {
+      const session = store.getState().session
+      if (!session) return
+      const found = await relateProject(session, text, seenRepos.current).catch(() => null)
+      if (!found) return
+      if ("ask" in found) return void controls.sendContextualUpdate(found.ask)
+      const { repo, fills } = found.related
+      store.dispatch({ type: "prefill", fills })
+      const got = fills.map((f) => `${f.fieldId}.${f.slot} = "${f.item.value}"`).join("; ")
+      const open = openSlotsText(store.getState().session ?? session)
+      controls.sendContextualUpdate(
+        `The user is talking about their GitHub repository ${repo.name} (${repo.url}). From it I found: ${got}. These are saved as "to confirm". Say them back in one short sentence and ask if they are right. Do not ask for them again. Still open: ${open}.`
+      )
+    },
+    [controls, store]
+  )
+
   const start = useCallback(
     async (kind: Channel) => {
       const session = store.getState().session
@@ -256,8 +279,15 @@ function AgentInner({ children }: { children: ReactNode }) {
         clientTools: tools,
         textOnly: kind === "text",
         ...(language ? { overrides: { agent: { language } } } : {}),
-        onMessage: (m: { role: "user" | "agent"; message: string }) =>
-          store.dispatch({ type: "utterance", role: m.role, text: m.message }),
+        onConnect: () => {
+          seenRepos.current.clear()
+          const note = briefing()
+          if (note && session.source !== "onboarding") controls.sendContextualUpdate(note)
+        },
+        onMessage: (m: { role: "user" | "agent"; message: string }) => {
+          store.dispatch({ type: "utterance", role: m.role, text: m.message })
+          if (m.role === "user") void relate(m.message)
+        },
         onError: (message: string) => {
           setError(classifyAgentError(message))
           toast.error("Voice agent error", { description: message })
@@ -273,7 +303,7 @@ function AgentInner({ children }: { children: ReactNode }) {
         controls.startSession({ signedUrl: info.signedUrl, ...common })
       }
     },
-    [controls, runDemo, stopAll, store, tools]
+    [controls, relate, runDemo, stopAll, store, tools]
   )
 
   const stop = useCallback(() => {

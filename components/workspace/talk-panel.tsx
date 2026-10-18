@@ -68,7 +68,7 @@ function ErrorNotice({ isDemo, retry }: { isDemo: boolean; retry: () => void }) 
           </Button>
         )}
         {e.kind === "setup" ? (
-          <Button size="sm" variant="outline" render={<Link href="/setup" />}>
+          <Button size="sm" variant="outline" nativeButton={false} render={<Link href="/setup" />}>
             Setup guide
           </Button>
         ) : (

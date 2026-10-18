@@ -1,10 +1,13 @@
 import { applyPrefill, matchExact, mergeNewest, mergeProfile, profileFromSession, type PrefillFill } from "./core"
 import { factsFromOnboarding } from "./profile-gaps"
+import { isSensitive, keyOf } from "./profile-keys"
 import type { ProfileItem, Session } from "./types"
 
 export const PROFILE_FORMAT = "bolbharo.profile"
 
 const KEY = "bolbharo.profile.v1"
+
+const FORM_SPECIFIC = /why|motivat|cover letter|join us|this role|this company|this position|this job/i
 
 /** Fired in this tab whenever the saved facts change, so the UI can update. */
 export const PROFILE_EVENT = "bolbharo:profile"
@@ -117,7 +120,14 @@ export function loadProfile(): ProfileItem[] {
 /** Save this session's confirmed facts, replacing older ones for the same question. Returns the saved count. */
 export function saveProfile(session: Session): number {
   try {
-    const merged = mergeProfile(loadProfile(), profileFromSession(session))
+    // The person read and approved these in review, so a later form may fill them in without asking again.
+    const facts = profileFromSession(session).map((p) => {
+      const key = keyOf(p.label)
+      // Answers about why this company or role were written for that form, so they are offered, not filled.
+      const specific = FORM_SPECIFIC.test(p.label)
+      return { ...p, confirmed: !specific, ...(key ? { key, sensitive: isSensitive(key, p.label) } : {}) }
+    })
+    const merged = mergeProfile(loadProfile(), facts)
     localStorage.setItem(KEY, JSON.stringify(merged))
     notify()
     return merged.length
@@ -140,11 +150,9 @@ export function clearProfile(): void {
  * exists, the rest are matched by the server, which only ever returns indexes into the saved list,
  * so a quote can never be invented.
  */
-export async function prefillFromProfile(session: Session, useModel: boolean): Promise<Session> {
+export async function prefillMatches(session: Session, saved: readonly ProfileItem[], useModel = true): Promise<PrefillFill[]> {
   // The onboarding interview asks exactly what the profile lacks, so nothing is pre-filled into it.
-  if (session.source === "onboarding") return session
-  const saved = loadProfile()
-  if (!saved.length) return session
+  if (session.source === "onboarding" || !saved.length) return []
 
   const fills: PrefillFill[] = matchExact(session, saved)
   if (useModel) {
@@ -185,7 +193,12 @@ export async function prefillFromProfile(session: Session, useModel: boolean): P
       // model matching is a bonus: exact matches still apply
     }
   }
-  return applyPrefill(session, fills)
+  return fills
+}
+
+export async function prefillFromProfile(session: Session, useModel: boolean): Promise<Session> {
+  const fills = await prefillMatches(session, loadProfile(), useModel)
+  return fills.length ? applyPrefill(session, fills) : session
 }
 
 // ---------- Optional: keep the facts in the signed-in Google account too ----------

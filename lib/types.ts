@@ -125,6 +125,8 @@ export interface Health {
   forms: boolean
   /** A database for syncing saved facts is configured. */
   sync: boolean
+  /** A GitHub OAuth app is configured, so an account (private repos included) can be connected. */
+  github: boolean
 }
 
 /** What the browser is told about the signed-in user. Never the tokens. */

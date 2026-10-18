@@ -1,5 +1,6 @@
 "use client"
 
+import { GithubConnect } from "./github-connect"
 import { DownloadIcon, PlusIcon, Trash2Icon, UploadIcon } from "lucide-react"
 import { useRef, useState } from "react"
 import { toast } from "sonner"
@@ -101,6 +102,8 @@ export function ProfileScreen() {
           .
         </p>
       </div>
+
+      <GithubConnect />
 
       <div className="flex flex-wrap gap-2">
         <Button

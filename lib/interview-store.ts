@@ -1,4 +1,4 @@
-import { applyUpdates, draftFlags, newId } from "./core.ts"
+import { applyPrefill, applyUpdates, draftFlags, newId, type PrefillFill } from "./core.ts"
 import type { SavedState } from "./persist"
 import type {
   GuardEvent,
@@ -47,6 +47,8 @@ export type Action =
     }
   | { type: "edit"; fieldId: string; text: string }
   | { type: "finish" }
+  /** Facts found mid-call (from a repo the person mentioned) for slots that are still empty. */
+  | { type: "prefill"; fills: PrefillFill[] }
   | { type: "hydrate"; saved: SavedState; savedAt: number }
   | { type: "approve" }
   | { type: "reopen" }
@@ -233,6 +235,8 @@ export function reduce(state: InterviewState, action: Action): InterviewState {
       return state.session && state.phase === "complete"
         ? { ...state, phase: "approved" }
         : state
+    case "prefill":
+      return state.session ? { ...state, session: applyPrefill(state.session, action.fills) } : state
     case "reopen":
       return state.phase === "approved" ? { ...state, phase: "complete" } : state
     case "restart":

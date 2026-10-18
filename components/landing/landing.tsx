@@ -461,7 +461,7 @@ function SourceCard() {
         <div role="alert" className="border border-destructive/50 bg-destructive/10 p-4 text-sm">
           <p className="font-medium text-destructive">{error.message}</p>
           {error.code === "NETWORK" && (
-            <Button size="sm" variant="outline" className="mt-3" render={<a href={replayHref(lang)} />}>
+            <Button size="sm" variant="outline" className="mt-3" nativeButton={false} render={<a href={replayHref(lang)} />}>
               Replay the recorded demo
             </Button>
           )}
@@ -470,7 +470,7 @@ function SourceCard() {
               <Button type="button" size="sm" variant="outline" onClick={() => setTab("demo")}>
                 Use the demo form
               </Button>
-              <Button size="sm" variant="ghost" render={<Link href="/setup" />}>
+              <Button size="sm" variant="ghost" nativeButton={false} render={<Link href="/setup" />}>
                 Set up keys
               </Button>
             </div>

@@ -172,6 +172,14 @@ Checked here: with `ELEVENLABS_API_KEY` set, `/api/voice/session` returns `mode:
 
 Palette sampled from the reference: forest `#081800`, tiles `#131e09` / `#192d0b`, lime `#e0f16e` / `#daed72` / `#cae23d`, cream `#e9f8b8`, olive `#648600`. Archivo throughout (variable weight and width: wide and heavy, in capitals, for display type) with Geist Mono for small labels. Corners are 2px everywhere and there are no italics. Lime blocks carry the key numbers and the main form card, frosted glass panels sit over a slow noise shader, and the voice orb is a second shader ringed by a live frequency dial. Dark is the default, light is a toggle (or press `d`). Motion uses anime.js and respects `prefers-reduced-motion`.
 
+## GitHub projects
+
+Optional. Connect a GitHub account on the Profile screen (or in onboarding) and Apply करो reads every repo it can see, private ones included, using GitHub's device flow (`lib/github-device.ts`, `/api/github/device` and `/api/github/poll`): a short code, no redirect, no client secret, so it works in the side panel as well. The token and the repo index (`lib/github-client.ts`, `lib/repos.ts`) stay in this browser and only go to api.github.com.
+
+How it is used: when the interviewer connects, it is told which projects you have. When you describe or name one, the sentence is matched to a repo (named outright, or two shared words with its description). That repo's README, languages and your commit count are read once a day, turned into quote-checked facts by the same extraction as onboarding, and the model picks which of the open questions they answer (it returns only indexes, so nothing is invented). Those answers are saved as "to confirm", the agent is told to say them back in one sentence and ask only what is still open. Two repos that fit means it asks which.
+
+Forms read in the extension use the saved profile and the facts from every earlier form you approved (remembered by default in the side panel). Confirmed, non-sensitive facts fill as answered; answers about why this company or role, and sensitive facts, are only offered. Needs `GITHUB_CLIENT_ID` (see `/setup`, step 07). Caveat: an OAuth app can only see private repos through the `repo` scope, which can also write; the app only reads.
+
 ## Browser extension (side panel)
 
 `extension/` is a Chrome extension that reads the form on any page (Google Forms, Microsoft Forms, a company's own site) and fills it in after approval. It opens in Chrome's side panel, frames this app, and talks to it with checked `postMessage`s. Source `page` in `/api/ingest` turns the questions it read into an interview. See `extension/README.md` for install, permissions and limits. `npm run test:extension` loads it into real Chrome and reads and fills two fixture pages. Not yet tried: a real Google or Microsoft form, and the microphone inside the side panel.
@@ -200,6 +208,7 @@ Copy `.env.example` to `.env.local`.
 | `ELEVENLABS_API_KEY` | Optional: private agent (short-lived tokens) |
 | `GROQ_MODEL` | Optional: defaults to `openai/gpt-oss-120b` |
 | `NEON_AUTH_BASE_URL`, `NEON_AUTH_COOKIE_SECRET` | Optional: Google sign-in through Neon Auth. The secret is 32 or more random characters |
+| `GITHUB_CLIENT_ID` | Optional: connect a GitHub account (device flow, no secret). Enable Device Flow on the OAuth app |
 | `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `AUTH_SECRET` | Optional: connect Google Forms to read private forms. `AUTH_SECRET` is 32 or more random characters |
 | `APP_URL` | Optional: the public address, when behind a proxy |
 | `DATABASE_URL` | Optional: a Postgres connection string, to sync saved facts |
