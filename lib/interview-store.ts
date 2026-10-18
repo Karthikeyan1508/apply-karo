@@ -49,6 +49,8 @@ export type Action =
   | { type: "finish" }
   /** Facts found mid-call (from a repo the person mentioned) for slots that are still empty. */
   | { type: "prefill"; fills: PrefillFill[] }
+  /** Move the project question through picking repos, reading them, and what is left to ask. */
+  | { type: "projects"; choice: NonNullable<Session["projectChoice"]> }
   | { type: "hydrate"; saved: SavedState; savedAt: number }
   | { type: "approve" }
   | { type: "reopen" }
@@ -235,6 +237,8 @@ export function reduce(state: InterviewState, action: Action): InterviewState {
       return state.session && state.phase === "complete"
         ? { ...state, phase: "approved" }
         : state
+    case "projects":
+      return state.session ? { ...state, session: { ...state.session, projectChoice: action.choice } } : state
     case "prefill":
       return state.session ? { ...state, session: applyPrefill(state.session, action.fills) } : state
     case "reopen":

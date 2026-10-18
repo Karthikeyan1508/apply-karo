@@ -37,7 +37,10 @@ async function post(url: string, params: Record<string, string>, f: typeof fetch
     throw new AppError("GITHUB_UNREACHABLE", 502, "Couldn't reach GitHub. Try again.")
   }
   const body = (await res.json().catch(() => null)) as Record<string, unknown> | null
-  if (!res.ok || !body) throw new AppError("GITHUB_FAILED", 502, `GitHub answered ${res.status}.`)
+  if (!res.ok || !body) {
+    const why = typeof body?.error_description === "string" ? `: ${body.error_description}` : typeof body?.error === "string" ? `: ${body.error}` : ""
+    throw new AppError("GITHUB_FAILED", 502, `GitHub answered ${res.status}${why}`)
+  }
   return body
 }
 

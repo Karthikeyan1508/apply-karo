@@ -21,15 +21,11 @@ describe("what Autofill types into the page", () => {
     expect(autofillPayload(s)).toEqual([{ ref: "0:b1", value: "Asha Patil" }])
   })
 
-  it("leaves out facts still waiting for a yes, empty answers, fields it cannot find again, and multi-part answers", () => {
+  it("leaves out facts still waiting for a yes, empty answers, and fields it cannot find again", () => {
     const s = session([
       field("F1", "0:b1", [{ value: "15 LPA", quote: "15 LPA", fromProfile: true }]),
       field("F2", "0:b2", [{ value: null }]),
       field("F3", null, [{ value: "x", quote: "x" }]),
-      field("F4", "0:b4", [
-        { value: "a", quote: "a" },
-        { value: "b", quote: "b" },
-      ]),
       field("F5", "0:b5", [{ value: "   ", quote: "q" }]),
     ])
     expect(autofillPayload(s)).toEqual([])

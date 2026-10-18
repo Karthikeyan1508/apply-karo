@@ -1,4 +1,5 @@
 import { z } from "zod"
+import { draftFallback } from "./core"
 import type { Session } from "./types"
 
 /** A form read off a web page by the browser extension: any site, not just Google Forms. */
@@ -35,15 +36,16 @@ export function fillPayload(
 }
 
 /**
- * What Autofill types into the page right away: the questions the saved profile fully answers. Single-question
- * fields only, and nothing still waiting for the person's yes (sensitive facts, facts to confirm). Anything else
- * is left for the interview.
+ * What Autofill types into the page right away: the questions the saved profile (or the repos the person chose)
+ * fully answers, and nothing still waiting for the person's yes (sensitive facts, facts to confirm). Anything
+ * else is left for the interview.
  */
 export function autofillPayload(session: Session): { ref: string; value: string }[] {
   return session.fields
     // Only questions the interviewer understood and has enough to answer.
     .filter((f) => !f.check || (f.check.understood && f.check.enough))
-    .filter((f) => f.entryId && f.slots.length === 1 && f.slots[0].value !== null && !f.slots[0].fromProfile)
-    .map((f) => ({ ref: f.entryId as string, value: (f.slots[0].value as string).trim() }))
+    .filter((f) => f.entryId && f.slots.length > 0 && f.slots.every((s) => s.value !== null && !s.fromProfile))
+    // A question with several parts is filled with its written answer, once it has one.
+    .map((f) => ({ ref: f.entryId as string, value: f.slots.length === 1 ? (f.slots[0].value as string).trim() : f.draft.trim() || draftFallback(f).trim() }))
     .filter((x) => x.value)
 }

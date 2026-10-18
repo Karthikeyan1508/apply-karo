@@ -15,6 +15,8 @@ The panel frames the app at `http://localhost:3100`. Change the address under **
 
 Press **Autofill** in the side panel: it reads the page, matches your saved profile and earlier approved forms, and types every answer it already knows into the page straight away. Sensitive facts, answers still waiting for your yes, and anything it has no fact for are left alone and nothing is submitted. **Read this page** is the other button: it opens the interview for the questions that are left.
 
+If a question asks about your projects and GitHub is connected, the panel first asks which of your repos to use. Pick up to three; they answer what they can, and the chat asks only for what they did not say.
+
 ## How it works
 
 - `extract.js` runs in the page when you press Read. It finds the questions (standard controls, plus the ARIA roles Google Forms and Microsoft Forms use) and tags each with a `data-bolbharo-ref`. Nothing leaves the page except to the app you framed.

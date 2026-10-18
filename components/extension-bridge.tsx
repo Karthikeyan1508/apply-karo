@@ -6,6 +6,7 @@ import { Logo } from "@/components/brand/logo"
 import { useAgent } from "@/hooks/use-agent"
 import { useInterviewStore } from "@/hooks/use-interview"
 import { autofillPayload, isExtensionOrigin, PageForm } from "@/lib/page-form"
+import { withProjectChoice } from "@/lib/github-client"
 import { loadProfile, prefillFromProfile } from "@/lib/profile"
 import { checkReadiness } from "@/lib/readiness"
 import type { ApiError, Session } from "@/lib/types"
@@ -67,7 +68,10 @@ export function ExtensionBridge() {
         // A call already running was briefed on the old form. End it so the next one starts on this one.
         agent.stop()
         // Before anything is filled: is each question understood, and is there enough to answer it?
-        const session = await checkReadiness(await prefillFromProfile(body.session, true), loadProfile())
+        // A project question with GitHub connected: the chat then asks which repos to use for it.
+        const session = withProjectChoice(
+          await checkReadiness(await prefillFromProfile(body.session, true), loadProfile())
+        )
         store.dispatch({ type: "session", session })
         // A form from the page always opens the interview, even from the profile screen.
         view.open("home")

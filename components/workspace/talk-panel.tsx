@@ -24,6 +24,7 @@ import { useReducedMotion } from "@/hooks/use-reduced-motion"
 import type { GuardEvent, Health, TranscriptLine } from "@/lib/types"
 import { cn } from "@/lib/utils"
 import { PanelHeader } from "./panel-header"
+import { ProjectPicker } from "./project-picker"
 import { slotLabel } from "./slot-chip"
 
 function Status({ label, live }: { label: string; live: boolean }) {
@@ -209,6 +210,9 @@ export function TalkPanel({ health, className }: { health: Health | null; classN
   if (!session) return null
 
   const chatting = transcript.length > 0 || agent.status === "connecting" || agent.status === "live"
+  // Choosing repos comes first: the orb gives way to the list instead of pushing it off the screen.
+  const picking = !chatting && Boolean(session.projectChoice) && session.projectChoice?.stage !== "skipped"
+  const compact = chatting || picking
   const voiceHint =
     health && !health.voice ? "Voice isn't set up yet. Add ELEVENLABS_AGENT_ID (see /setup)." : null
   const isDemo = session.source === "demo"
@@ -297,23 +301,23 @@ export function TalkPanel({ health, className }: { health: Health | null; classN
       <div
         className={cn(
           "shrink-0 transition-[padding] duration-500",
-          chatting
+          compact
             ? "flex items-center gap-4 border-b px-5 py-2"
             : "flex flex-1 flex-col items-center justify-center gap-4 px-6 py-3"
         )}
       >
         <OrbStage
-          box={chatting ? 108 : 310}
-          scale={chatting ? 0.46 : 0.94}
+          box={compact ? 108 : 310}
+          scale={compact ? 0.46 : 0.94}
           mode={agent.mode}
           status={agent.status}
           getLevels={agent.getLevels}
           getSpectrum={agent.getSpectrum}
         />
-        {chatting ? (
+        {compact ? (
           <div className="min-w-0 flex-1" aria-live="polite">
             <p className="label-caps text-brand">{label}</p>
-            <p className="mt-1 text-sm text-muted-foreground">{hint}</p>
+            <p className="mt-1 text-sm text-muted-foreground">{picking ? "Choose which repos to use below." : hint}</p>
           </div>
         ) : (
           <p className="display max-w-md text-center text-4xl text-balance uppercase">
@@ -344,6 +348,8 @@ export function TalkPanel({ health, className }: { health: Health | null; classN
           )}
         </div>
       )}
+
+      <ProjectPicker className={picking ? "min-h-0 flex-1 overflow-y-auto" : undefined} />
 
       <div className={cn("flex w-full shrink-0 flex-col items-center gap-3 border-t", chatting ? "p-3" : "p-5")}>
         {idle ? (

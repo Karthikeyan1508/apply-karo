@@ -292,6 +292,12 @@ function AgentInner({ children }: { children: ReactNode }) {
           seenRepos.current.clear()
           const note = briefing()
           if (note && session.source !== "onboarding") controls.sendContextualUpdate(note)
+          const pc = session.projectChoice
+          if (pc?.stage === "done") {
+            controls.sendContextualUpdate(
+              `For the project question the user chose these GitHub repositories: ${pc.repos.join(", ")}. What they say is already filled in. Ask only what is still open${pc.leftover.length ? `: ${pc.leftover.join("; ")}` : ""}.`
+            )
+          }
         },
         onMessage: (m: { role: "user" | "agent"; message: string }) => {
           store.dispatch({ type: "utterance", role: m.role, text: m.message })

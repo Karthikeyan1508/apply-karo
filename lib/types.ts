@@ -98,6 +98,11 @@ export interface Session {
   fields: FormField[]
   /** Distinguishes source-aware deepening from the optional standard profile gaps. */
   onboardingPurpose?: "grill" | "gaps"
+  /**
+   * A question about the person's projects, when their GitHub is connected: which repos to use for it,
+   * asked in the chat. `leftover` is what the chosen repos could not answer and the interview still asks.
+   */
+  projectChoice?: { fieldId: string; stage: "ask" | "working" | "done" | "skipped"; repos: string[]; leftover: string[] }
 }
 
 export interface SlotUpdate {

@@ -125,3 +125,14 @@ export function repoCorpus(d: RepoDetail): string {
   if (d.readme) lines.push("README:", d.readme.slice(0, 3000))
   return lines.join("\n")
 }
+
+/** A question that asks about the person's projects, so their repos can answer it. */
+export function isProjectQuestion(f: { label: string; intent?: string; kind?: string }): boolean {
+  if (f.kind && f.kind !== "long_text" && f.kind !== "text") return false
+  return /\b(projects?|worked on|something (you('ve| have) )?(built|made|created)|you (built|developed|created)|portfolio work)\b/i.test(`${f.label} ${f.intent ?? ""}`)
+}
+
+/** Repos worth offering first: the person's own over forks, then the most starred, then the most recently pushed. */
+export function rankRepos(repos: readonly Repo[]): Repo[] {
+  return [...repos].sort((a, b) => Number(a.fork) - Number(b.fork) || b.stars - a.stars || Date.parse(b.pushed) - Date.parse(a.pushed))
+}

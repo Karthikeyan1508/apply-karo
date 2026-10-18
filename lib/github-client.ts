@@ -1,6 +1,6 @@
 import type { PrefillFill } from "./core"
 import { prefillMatches } from "./profile"
-import { lastPage, matchRepos, parseRepos, repoCorpus, repoDigest, type Repo, type RepoDetail } from "./repos"
+import { isProjectQuestion, lastPage, matchRepos, parseRepos, repoCorpus, repoDigest, type Repo, type RepoDetail } from "./repos"
 import type { ProfileItem, Session } from "./types"
 
 /**
@@ -230,4 +230,30 @@ export function briefing(): string | null {
   const digest = repoDigest(loadRepos())
   if (!link || !digest) return null
   return `The user connected their GitHub (@${link.login}). Their projects, private ones included:\n${digest}\nWhen the user talks about one of these, say its name back to them. Details from that repository are then provided to you: confirm them briefly instead of asking for them again, and ask only for what is still missing.`
+}
+
+// ---------- Asking which repos to use for a project question ----------
+
+/**
+ * When GitHub is connected and the form asks about the person's projects, mark that question so the chat
+ * asks which repos to use. Without a connection, or without such a question, the form is left as it is.
+ */
+export function withProjectChoice(session: Session): Session {
+  if (session.source === "onboarding" || session.source === "demo" || !loadLink() || !loadRepos().length) return session
+  const field = session.fields.find((f) => isProjectQuestion(f) && f.slots.some((s) => s.value === null))
+  return field ? { ...session, projectChoice: { fieldId: field.id, stage: "ask", repos: [], leftover: [] } } : session
+}
+
+/**
+ * What the chosen repos answer on the project question. The person picked these repos for this question,
+ * so what they say counts as given (not "to confirm"); the model only chooses which slot each fact fills.
+ */
+export async function projectFills(session: Session, fieldId: string, repos: readonly Repo[]): Promise<PrefillFill[]> {
+  const link = loadLink()
+  const field = session.fields.find((f) => f.id === fieldId)
+  if (!link || !field) return []
+  const facts = (await Promise.all(repos.map((r) => repoFacts(link, r).catch(() => [] as ProfileItem[])))).flat()
+  if (!facts.length) return []
+  const trusted = facts.map((f) => ({ ...f, confirmed: true, sensitive: false }))
+  return prefillMatches({ ...session, fields: [field] }, trusted)
 }
