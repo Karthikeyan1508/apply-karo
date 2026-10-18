@@ -5,8 +5,9 @@ import { toast } from "sonner"
 import { Logo } from "@/components/brand/logo"
 import { useAgent } from "@/hooks/use-agent"
 import { useInterviewStore } from "@/hooks/use-interview"
-import { autofillPayload, isExtensionOrigin, PageForm } from "@/lib/page-form"
-import { withProjectChoice } from "@/lib/github-client"
+import { draftFlags, factSignature } from "@/lib/core"
+import { requestDraft } from "@/lib/draft-client"
+import { autofillPayload, carryAnswers, isExtensionOrigin, PageForm } from "@/lib/page-form"
 import { loadProfile, prefillFromProfile } from "@/lib/profile"
 import { checkReadiness } from "@/lib/readiness"
 import type { ApiError, Session } from "@/lib/types"
@@ -68,9 +69,9 @@ export function ExtensionBridge() {
         // A call already running was briefed on the old form. End it so the next one starts on this one.
         agent.stop()
         // Before anything is filled: is each question understood, and is there enough to answer it?
-        // A project question with GitHub connected: the chat then asks which repos to use for it.
-        const session = withProjectChoice(
-          await checkReadiness(await prefillFromProfile(body.session, true), loadProfile())
+        const session = await checkReadiness(
+          carryAnswers(store.getState().session, await prefillFromProfile(body.session, true)),
+          loadProfile()
         )
         store.dispatch({ type: "session", session })
         // A form from the page always opens the interview, even from the profile screen.
@@ -78,7 +79,7 @@ export function ExtensionBridge() {
         toast.dismiss(id)
         // Autofill: type what the profile knows into the page now. The interview still covers the rest.
         if (e.data.autofill) {
-          const fields = autofillPayload(session)
+          const fields = autofillPayload(await withDrafts(store, session))
           if (fields.length) window.parent.postMessage({ type: "bolbharo:fill", fields }, parent)
           else toast.message("Nothing in your profile matches this page yet. Answer the questions and they will be remembered.")
         }
@@ -117,4 +118,23 @@ export function EmbedHome() {
       <ProfileCard />
     </main>
   )
+}
+
+/** Long answers are written before they are typed into the page, so a project question gets a full answer, not a list of facts. */
+async function withDrafts(store: ReturnType<typeof useInterviewStore>, session: Session): Promise<Session> {
+  const fields = await Promise.all(
+    session.fields.map(async (f) => {
+      const sig = factSignature(f)
+      const ready = f.entryId && f.slots.length > 0 && f.slots.every((s) => (s.value !== null && !s.fromProfile) || s.skipped)
+      if (!ready || f.edited || f.draftSig === sig || (f.kind !== "long_text" && f.slots.length < 2)) return f
+      try {
+        const r = await requestDraft(f)
+        store.dispatch({ type: "draft", fieldId: f.id, text: r.draft, flags: draftFlags(f, r.draft), sig })
+        return { ...f, draft: r.draft, draftSig: sig }
+      } catch {
+        return f
+      }
+    })
+  )
+  return { ...session, fields }
 }

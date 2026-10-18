@@ -126,6 +126,9 @@ export function repoCorpus(d: RepoDetail): string {
   return lines.join("\n")
 }
 
+/** "/projects" typed, or "open projects" said: the person wants to pick repos for the project question. */
+export const isProjectsCommand = (text: string) => /^\s*\/projects?\b|\bopen (my |the )?(projects?|repos?|repositories)\b/i.test(text)
+
 /** A question that asks about the person's projects, so their repos can answer it. */
 export function isProjectQuestion(f: { label: string; intent?: string; kind?: string }): boolean {
   if (f.kind && f.kind !== "long_text" && f.kind !== "text") return false
@@ -135,4 +138,25 @@ export function isProjectQuestion(f: { label: string; intent?: string; kind?: st
 /** Repos worth offering first: the person's own over forks, then the most starred, then the most recently pushed. */
 export function rankRepos(repos: readonly Repo[]): Repo[] {
   return [...repos].sort((a, b) => Number(a.fork) - Number(b.fork) || b.stars - a.stars || Date.parse(b.pushed) - Date.parse(a.pushed))
+}
+
+/** The first real paragraph of a README: no badges, images, headings, code or HTML. Empty when there is none. */
+export function readmeSummary(readme: string, max = 280): string {
+  const clean = readme
+    .replace(/```[\s\S]*?```/g, "")
+    .replace(/<[^>]+>/g, "")
+    .replace(/!\[[^\]]*\]\([^)]*\)/g, "")
+    .replace(/\[([^\]]*)\]\([^)]*\)/g, "$1")
+  const para = clean
+    .split(/\n\s*\n/)
+    .map((p) => p.replace(/[*_`>#]/g, "").replace(/\s+/g, " ").trim())
+    .find((p) => p.length >= 40 && /[a-z]{3}/i.test(p) && !/^[-|=+ ]+$/.test(p))
+  if (!para) return ""
+  return para.length > max ? `${para.slice(0, max).replace(/\s+\S*$/, "")}…` : para
+}
+
+/** Of the open parts of a project question, the ones worth asking: the person's role and the outcome come first. */
+export function mainQuestions<T extends { slot: string; ask: string }>(open: readonly T[], max = 2): T[] {
+  const main = open.filter((o) => /role|outcome|result|impact|contribut/i.test(`${o.slot} ${o.ask}`))
+  return (main.length ? main : [...open]).slice(0, max)
 }

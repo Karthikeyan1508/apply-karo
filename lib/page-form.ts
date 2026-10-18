@@ -44,8 +44,29 @@ export function autofillPayload(session: Session): { ref: string; value: string 
   return session.fields
     // Only questions the interviewer understood and has enough to answer.
     .filter((f) => !f.check || (f.check.understood && f.check.enough))
-    .filter((f) => f.entryId && f.slots.length > 0 && f.slots.every((s) => s.value !== null && !s.fromProfile))
+    .filter((f) => f.entryId && f.slots.length > 0 && f.slots.every((s) => (s.value !== null && !s.fromProfile) || (s.skipped && s.value === null)) && f.slots.some((s) => s.value !== null))
     // A question with several parts is filled with its written answer, once it has one.
-    .map((f) => ({ ref: f.entryId as string, value: f.slots.length === 1 ? (f.slots[0].value as string).trim() : f.draft.trim() || draftFallback(f).trim() }))
+    .map((f) => ({ ref: f.entryId as string, value: f.slots.length === 1 && !(f.kind === "long_text" && f.draft.trim()) ? (f.slots[0].value as string).trim() : f.draft.trim() || draftFallback(f).trim() }))
     .filter((x) => x.value)
+}
+
+/**
+ * The same page read again (Autofill re-reads it): keep what was already answered in this interview, so
+ * answers given in the chat are not lost and are what gets typed into the page.
+ */
+export function carryAnswers(old: Session | null | undefined, fresh: Session): Session {
+  if (!old || old.source !== "page") return fresh
+  const label = (s: string) => s.trim().toLowerCase()
+  const before = new Map(old.fields.map((f) => [label(f.label), f]))
+  let kept = false
+  const fields = fresh.fields.map((f) => {
+    const o = before.get(label(f.label))
+    if (!o || o.slots.length !== f.slots.length || !o.slots.every((s, i) => s.name === f.slots[i].name)) return f
+    const slots = f.slots.map((s, i) => (s.value === null && o.slots[i].value !== null ? { ...o.slots[i] } : s))
+    if (slots.every((s, i) => s === f.slots[i])) return f
+    kept = true
+    // Answered in the interview, so the readiness verdict on the empty question no longer applies.
+    return { ...f, slots, draft: f.draft || o.draft, check: undefined }
+  })
+  return kept ? { ...fresh, fields } : fresh
 }

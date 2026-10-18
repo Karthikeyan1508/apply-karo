@@ -102,7 +102,7 @@ export interface Session {
    * A question about the person's projects, when their GitHub is connected: which repos to use for it,
    * asked in the chat. `leftover` is what the chosen repos could not answer and the interview still asks.
    */
-  projectChoice?: { fieldId: string; stage: "ask" | "working" | "done" | "skipped"; repos: string[]; leftover: string[] }
+  projectChoice?: { fieldId: string; stage: "ask" | "working" | "done" | "skipped"; repos: string[]; leftover: string[]; summaries?: { repo: string; text: string }[] }
 }
 
 export interface SlotUpdate {
