@@ -152,7 +152,7 @@ const aria = await readPage("aria.html")
   await page.goto(`${site}/plain.html`)
   const panel = await context.newPage()
   await panel.goto(`chrome-extension://${id}/panel.html`)
-  const tabId = await panel.evaluate(async (u) => (await chrome.tabs.query({ url: u }))[0].id, `${site}/plain.html`)
+  const tabId = await panel.evaluate(async (u) => (await chrome.tabs.query({ url: u })).at(-1).id, `${site}/plain.html`)
   await panel.goto(`chrome-extension://${id}/panel.html?tab=${tabId}`)
   await panel.frameLocator("iframe").locator("#main").waitFor({ timeout: 30000 })
   const seed = [
@@ -173,6 +173,13 @@ const aria = await readPage("aria.html")
   check("profile: two known fields are filled from the profile", /2\/6 facts/.test(header), header.trim().slice(0, 80))
   const plan = await frame.locator("section", { hasText: "Plan" }).first().textContent().catch(() => "")
   check("profile: the rest are left open for the interview", /4 to go/.test(plan) && /Notice period/.test(plan) && /Work authorisation/.test(plan), plan.replace(/\s+/g, " ").slice(0, 120))
+  // Autofill: the same page, now filled straight from the profile with no interview.
+  await page.evaluate(() => document.querySelectorAll("input,textarea").forEach((e) => (e.value = "")))
+  await panel.getByRole("button", { name: "Autofill" }).click()
+  await page.waitForFunction(() => document.querySelector("#name").value !== "", null, { timeout: 20000 }).catch(() => {})
+  const auto = await page.evaluate(() => ({ name: document.querySelector("#name").value, email: document.querySelector("#email").value, why: document.querySelector("#why").value, notice: document.querySelector("#notice").value, search: location.search }))
+  check("autofill: the known fields are typed into the page", auto.name === "Asha Patil" && auto.email === "asha@example.com", JSON.stringify(auto))
+  check("autofill: the rest stay empty and nothing is submitted", auto.why === "" && auto.notice === "" && auto.search === "")
   ingestMode = "error"
   await panel.close()
 }

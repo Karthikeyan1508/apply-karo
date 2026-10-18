@@ -172,6 +172,10 @@ Checked here: with `ELEVENLABS_API_KEY` set, `/api/voice/session` returns `mode:
 
 Palette sampled from the reference: forest `#081800`, tiles `#131e09` / `#192d0b`, lime `#e0f16e` / `#daed72` / `#cae23d`, cream `#e9f8b8`, olive `#648600`. Archivo throughout (variable weight and width: wide and heavy, in capitals, for display type) with Geist Mono for small labels. Corners are 2px everywhere and there are no italics. Lime blocks carry the key numbers and the main form card, frosted glass panels sit over a slow noise shader, and the voice orb is a second shader ringed by a live frequency dial. Dark is the default, light is a toggle (or press `d`). Motion uses anime.js and respects `prefers-reduced-motion`.
 
+## Autofill and the resume
+
+In the side panel, **Autofill** reads the page and types what the saved profile already answers into it, with no interview (`autofillPayload` in `lib/page-form.ts`). Details read from a resume are used for this but are never listed on the Profile screen or in the onboarding review: they are saved with `hidden: true` (export and import keep them). GitHub and LinkedIn facts stay visible.
+
 ## GitHub projects
 
 Optional. Connect a GitHub account on the Profile screen (or in onboarding) and Apply करो reads every repo it can see, private ones included, using GitHub's device flow (`lib/github-device.ts`, `/api/github/device` and `/api/github/poll`): a short code, no redirect, no client secret, so it works in the side panel as well. The token and the repo index (`lib/github-client.ts`, `lib/repos.ts`) stay in this browser and only go to api.github.com.

@@ -72,6 +72,8 @@ export interface ProfileItem {
   sensitive?: boolean
   /** The user explicitly allowed a sensitive fact to be filled in automatically. */
   autofill?: boolean
+  /** Read from the person's resume. Used to fill forms but never listed on the Profile screen. */
+  hidden?: boolean
   /** A reusable clarification about a project or role, never broadly autofilled. */
   kind?: "decision"
   /** The project or experience fact this decision belongs to. */

@@ -5,6 +5,7 @@ const DEFAULT_APP = "http://localhost:3100"
 const frame = document.getElementById("app")
 const status = document.getElementById("status")
 const readButton = document.getElementById("read")
+const autofillButton = document.getElementById("autofill")
 const micButton = document.getElementById("mic")
 const appInput = document.getElementById("appUrl")
 let appOrigin = ""
@@ -36,8 +37,9 @@ async function inject(tabId, file) {
   return chrome.scripting.executeScript({ target: { tabId, allFrames: true }, files: [file] })
 }
 
-readButton.addEventListener("click", async () => {
-  readButton.disabled = true
+/** Read the form on the tab and hand it to the app. With `autofill` the app also asks for the page to be filled. */
+async function readPage(autofill) {
+  readButton.disabled = autofillButton.disabled = true
   try {
     const tab = await targetTab()
     if (!tab?.id) return say("No page to read.")
@@ -55,13 +57,16 @@ readButton.addEventListener("click", async () => {
       fields: frames.flatMap((r) => r.result.fields.map((f) => ({ ...f, ref: `${r.frameId}:${f.ref}` }))),
     }
     say(`Read ${form.fields.length} questions.`)
-    frame.contentWindow.postMessage({ type: "bolbharo:form", form }, appOrigin)
+    frame.contentWindow.postMessage({ type: "bolbharo:form", form, autofill }, appOrigin)
   } catch (e) {
     say(`Can't read this page (${e instanceof Error ? e.message : "error"}).`)
   } finally {
-    readButton.disabled = false
+    readButton.disabled = autofillButton.disabled = false
   }
-})
+}
+
+readButton.addEventListener("click", () => readPage(false))
+autofillButton.addEventListener("click", () => readPage(true))
 
 /** Type the approved answers into the page. The app asks for this; nothing here submits anything. */
 async function fill(fields) {

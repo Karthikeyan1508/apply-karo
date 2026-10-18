@@ -46,6 +46,7 @@ export function valid(p: unknown): p is ProfileItem {
     optional("confirmed", "boolean") &&
     optional("sensitive", "boolean") &&
     optional("autofill", "boolean") &&
+    optional("hidden", "boolean") &&
     (o.kind === undefined || o.kind === "decision") &&
     optional("subjectKey", "string") &&
     (o.category === undefined ||
@@ -102,6 +103,9 @@ const clamp = (p: ProfileItem): ProfileItem => ({
   source: p.source?.slice(0, 60),
   subjectKey: p.subjectKey?.slice(0, 80),
 })
+
+/** Facts the person can see and edit: everything except what was read from the resume. */
+export const shown = (items: readonly ProfileItem[]) => items.filter((f) => !f.hidden)
 
 /** The facts as a JSON file the person can keep, or move to the side panel's own copy. */
 export function profileJson(

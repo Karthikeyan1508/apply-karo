@@ -9,6 +9,7 @@
       body { display: flex; flex-direction: column; }
       header { display: flex; gap: 8px; align-items: center; padding: 8px 10px; border-bottom: 1px solid #1f3a0c; }
       button { cursor: pointer; border: 0; border-radius: 3px; padding: 8px 12px; font: 600 13px system-ui, sans-serif; background: #e0f16e; color: #081800; }
+      button.plain { background: transparent; color: #e0f16e; border: 1px solid #1f3a0c; }
       button:disabled { opacity: 0.5; cursor: default; }
       #status { flex: 1; min-width: 0; color: #b6c98a; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
       iframe { flex: 1; width: 100%; border: 0; background: #081800; }
@@ -18,7 +19,8 @@
   </head>
   <body>
     <header>
-      <button id="read">Read this page</button>
+      <button id="autofill" title="Fill in what your profile already knows">Autofill</button>
+      <button id="read" class="plain" title="Read the questions and interview you">Read this page</button>
       <span id="status" role="status">Open a page with a form.</span>
       <button id="mic" hidden title="Chrome needs to ask once, in a tab">Allow microphone</button>
     </header>

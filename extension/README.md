@@ -11,6 +11,10 @@ Reads the form on the page you are on, any site, then interviews you in Chrome's
 
 The panel frames the app at `http://localhost:3100`. Change the address under **App address** at the bottom of the panel, for example to your deployed app.
 
+## Autofill
+
+Press **Autofill** in the side panel: it reads the page, matches your saved profile and earlier approved forms, and types every answer it already knows into the page straight away. Sensitive facts, answers still waiting for your yes, and anything it has no fact for are left alone and nothing is submitted. **Read this page** is the other button: it opens the interview for the questions that are left.
+
 ## How it works
 
 - `extract.js` runs in the page when you press Read. It finds the questions (standard controls, plus the ARIA roles Google Forms and Microsoft Forms use) and tags each with a `data-bolbharo-ref`. Nothing leaves the page except to the app you framed.

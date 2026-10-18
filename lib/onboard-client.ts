@@ -173,6 +173,10 @@ export async function readSources(
   }
 
   // Links first, so a link wins over anything the model said about the same key.
-  const facts = groundFacts([...links, ...extracted], sources, now)
+  const resumeName = inputs.resume ? shortName(inputs.resume.name) : null
+  // What the resume says is kept for filling forms, not listed back to the person.
+  const facts = groundFacts([...links, ...extracted], sources, now).map((f) =>
+    resumeName && f.source === resumeName ? { ...f, hidden: true } : f
+  )
   return { facts, notes }
 }

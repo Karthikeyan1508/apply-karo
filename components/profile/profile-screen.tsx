@@ -14,6 +14,7 @@ import {
   loadProfile,
   parseProfileJson,
   profileJson,
+  shown,
   writeProfile,
 } from "@/lib/profile"
 import { SECTIONS, sectionOf } from "@/lib/profile-keys"
@@ -55,7 +56,9 @@ function download(name: string, text: string) {
 /** The saved profile: every fact grouped by section, with the words it came from, and what to do with each. */
 export function ProfileScreen() {
   const view = useView()
-  const facts = useProfileItems()
+  const all = useProfileItems()
+  // What the resume gave is kept for filling forms but not listed or edited here.
+  const facts = shown(all)
   const syncing = useSyncEnabled()
   const fileInput = useRef<HTMLInputElement>(null)
   const [confirmAll, setConfirmAll] = useState(false)
@@ -63,7 +66,7 @@ export function ProfileScreen() {
   const update = (fact: ProfileItem, patch: Partial<ProfileItem>) => {
     const id = factId(fact)
     void persist(
-      facts.map((f) => (factId(f) === id ? { ...f, ...patch } : f)),
+      all.map((f) => (factId(f) === id ? { ...f, ...patch } : f)),
       false
     )
   }
@@ -71,7 +74,7 @@ export function ProfileScreen() {
   const remove = (fact: ProfileItem) => {
     const id = factId(fact)
     void persist(
-      facts.filter((f) => factId(f) !== id),
+      all.filter((f) => factId(f) !== id),
       true
     ).then((ok) => ok && toast.success(`Removed ${fact.label}`))
   }
@@ -115,7 +118,7 @@ export function ProfileScreen() {
         <Button
           variant="outline"
           disabled={!facts.length}
-          onClick={() => download("bolbharo-profile.json", profileJson(facts))}
+          onClick={() => download("bolbharo-profile.json", profileJson(all))}
         >
           <DownloadIcon /> Export JSON
         </Button>

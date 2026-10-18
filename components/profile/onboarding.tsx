@@ -28,6 +28,7 @@ import {
   loadProfile,
   pushProfile,
   saveReviewed,
+  shown,
   syncEnabled,
 } from "@/lib/profile"
 import { useProfileItems } from "@/hooks/use-profile-items"
@@ -521,12 +522,14 @@ function Reading({
 
 function Review({
   facts,
+  heldCount,
   setFacts,
   notes,
   onSave,
   onSaveOnly,
 }: {
   facts: ProfileItem[]
+  heldCount: number
   setFacts: (next: ProfileItem[]) => void
   notes: string[]
   onSave: () => void
@@ -542,6 +545,7 @@ function Review({
     setFacts(facts.map((f, n) => (n === i ? { ...f, ...patch } : f)))
   const remove = (i: number) => setFacts(facts.filter((_, n) => n !== i))
   const usable = facts.filter((f) => f.value.trim())
+  const toSave = usable.length + heldCount
 
   return (
     <div className="flex flex-col gap-6">
@@ -565,8 +569,9 @@ function Review({
 
       {facts.length === 0 ? (
         <p className="panel rounded-xl p-6 text-sm leading-relaxed text-muted-foreground">
-          We found nothing we can use yet. You will be asked the questions
-          instead.
+          {heldCount
+            ? `Your resume gave ${heldCount} details. They are kept to fill forms and are not listed here.`
+            : "We found nothing we can use yet. You will be asked the questions instead."}
         </p>
       ) : (
         bySection.map(({ s, items }) => (
@@ -596,7 +601,7 @@ function Review({
 
       <div className="sticky bottom-0 -mx-4 flex flex-wrap items-center justify-between gap-3 border-t bg-background/90 px-4 py-4 backdrop-blur sm:-mx-8 sm:px-8">
         <span className="label-caps text-muted-foreground tabular-nums">
-          {usable.length} to save
+          {toSave} to save
         </span>
         <div className="flex flex-wrap gap-2">
           <Button variant="outline" className="h-11 px-4" onClick={onSaveOnly}>
@@ -690,8 +695,10 @@ export function Onboarding() {
   const [current, setCurrent] = useState<ReadStep | "done" | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [facts, setFacts] = useState<ProfileItem[]>([])
+  // Read from the resume: saved for filling forms, but not shown for review or in the profile.
+  const [held, setHeld] = useState<ProfileItem[]>([])
   const [notes, setNotes] = useState<string[]>([])
-  const saved = useProfileItems()
+  const saved = shown(useProfileItems())
 
   const back: OnboardingStart = "welcome"
   const leave = () => view.open("home", back)
@@ -718,7 +725,8 @@ export function Onboarding() {
     try {
       const result = await readSources(inputs, (s) => setCurrent(s))
       setCurrent("done")
-      setFacts(result.facts)
+      setFacts(result.facts.filter((f) => !f.hidden))
+      setHeld(result.facts.filter((f) => f.hidden))
       setNotes(result.notes)
       setStep("review")
     } catch (e) {
@@ -730,7 +738,8 @@ export function Onboarding() {
 
   /** Save reviewed source facts, then deepen projects before optionally asking profile basics. */
   async function save(startQuestions: boolean, list: ProfileItem[] = facts) {
-    const count = saveReviewed(list.filter((f) => f.value.trim()))
+    const everything = [...list, ...held].filter((f) => f.value.trim())
+    const count = saveReviewed(everything)
     if (count === null) {
       toast.error("Couldn't save", {
         description:
@@ -741,7 +750,7 @@ export function Onboarding() {
     if (syncEnabled()) void pushProfile()
     if (startQuestions && llm) {
       try {
-        const questions = await readGrill(list.filter((f) => f.value.trim()))
+        const questions = await readGrill(everything)
         if (questions.length) {
           store.dispatch({ type: "session", session: grillSession(questions) })
           view.open("home")
@@ -789,6 +798,7 @@ export function Onboarding() {
       {step === "review" && (
         <Review
           facts={facts}
+          heldCount={held.length}
           setFacts={setFacts}
           notes={notes}
           onSave={() => save(true)}

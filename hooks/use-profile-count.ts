@@ -1,7 +1,7 @@
 "use client"
 
 import { useSyncExternalStore } from "react"
-import { loadProfile, PROFILE_EVENT } from "@/lib/profile"
+import { loadProfile, PROFILE_EVENT, shown } from "@/lib/profile"
 
 function subscribe(onChange: () => void) {
   window.addEventListener(PROFILE_EVENT, onChange)
@@ -14,5 +14,5 @@ function subscribe(onChange: () => void) {
 
 /** How many facts are saved on this device. 0 on the server and while storage is unavailable. */
 export function useProfileCount(): number {
-  return useSyncExternalStore(subscribe, () => loadProfile().length, () => 0)
+  return useSyncExternalStore(subscribe, () => shown(loadProfile()).length, () => 0)
 }

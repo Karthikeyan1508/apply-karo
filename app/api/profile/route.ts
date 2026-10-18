@@ -17,6 +17,7 @@ const Item = z.object({
   confirmed: z.boolean().optional(),
   sensitive: z.boolean().optional(),
   autofill: z.boolean().optional(),
+  hidden: z.boolean().optional(),
   kind: z.literal("decision").optional(),
   subjectKey: z.string().max(80).optional(),
   category: z

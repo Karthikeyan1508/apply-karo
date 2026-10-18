@@ -33,3 +33,15 @@ export function fillPayload(
     .filter((f) => f.entryId && f.draft.trim())
     .map((f) => ({ ref: f.entryId as string, value: f.draft.trim() }))
 }
+
+/**
+ * What Autofill types into the page right away: the questions the saved profile fully answers. Single-question
+ * fields only, and nothing still waiting for the person's yes (sensitive facts, facts to confirm). Anything else
+ * is left for the interview.
+ */
+export function autofillPayload(session: Session): { ref: string; value: string }[] {
+  return session.fields
+    .filter((f) => f.entryId && f.slots.length === 1 && f.slots[0].value !== null && !f.slots[0].fromProfile)
+    .map((f) => ({ ref: f.entryId as string, value: (f.slots[0].value as string).trim() }))
+    .filter((x) => x.value)
+}

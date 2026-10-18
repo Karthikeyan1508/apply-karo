@@ -5,7 +5,7 @@ import { toast } from "sonner"
 import { Logo } from "@/components/brand/logo"
 import { useAgent } from "@/hooks/use-agent"
 import { useInterviewStore } from "@/hooks/use-interview"
-import { isExtensionOrigin, PageForm } from "@/lib/page-form"
+import { autofillPayload, isExtensionOrigin, PageForm } from "@/lib/page-form"
 import { prefillFromProfile } from "@/lib/profile"
 import type { ApiError, Session } from "@/lib/types"
 import { ProfileCard } from "@/components/profile/profile-card"
@@ -65,13 +65,17 @@ export function ExtensionBridge() {
         }
         // A call already running was briefed on the old form. End it so the next one starts on this one.
         agent.stop()
-        store.dispatch({
-          type: "session",
-          session: await prefillFromProfile(body.session, true),
-        })
+        const session = await prefillFromProfile(body.session, true)
+        store.dispatch({ type: "session", session })
         // A form from the page always opens the interview, even from the profile screen.
         view.open("home")
         toast.dismiss(id)
+        // Autofill: type what the profile knows into the page now. The interview still covers the rest.
+        if (e.data.autofill) {
+          const fields = autofillPayload(session)
+          if (fields.length) window.parent.postMessage({ type: "bolbharo:fill", fields }, parent)
+          else toast.message("Nothing in your profile matches this page yet. Answer the questions and they will be remembered.")
+        }
       } catch {
         toast.error("Couldn't reach Apply करो. Is the server running?", { id })
       }
