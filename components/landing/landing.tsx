@@ -47,7 +47,6 @@ import { Ticker } from "./ticker"
 
 type SourceTab = "google" | "text" | "demo"
 type Lang = "en-IN" | "hi-IN"
-type DemoForm = "job" | "merchant"
 
 /** A full page load on purpose: the replay flag is read once per load. */
 const replayHref = (lang: Lang) => (lang === "hi-IN" ? "/?replay=1&lang=hi" : "/?replay=1")
@@ -131,7 +130,6 @@ function SourceCard() {
   const [lang, setLang] = useState<Lang>("en-IN")
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<ApiError["error"] | null>(null)
-  const [demoForm, setDemoForm] = useState<DemoForm>("job")
   const [doc, setDoc] = useState<Doc | null>(null)
   const [docBusy, setDocBusy] = useState(false)
   const [docError, setDocError] = useState<string | null>(null)
@@ -139,15 +137,13 @@ function SourceCard() {
   const [pasted, setPasted] = useState("")
   const fileInput = useRef<HTMLInputElement>(null)
 
-  const active: SourceTab = tab ?? (health?.llm ? "google" : "demo")
+  const active: SourceTab = tab ?? "demo"
   const ready =
     active === "demo" ||
     (active === "google" && url.trim().length > 0) ||
     (active === "text" && text.trim().length >= 10)
 
-  // The merchant demo is spoken in Hindi, so it fixes the language.
-  const merchant = active === "demo" && demoForm === "merchant"
-  const effectiveLang: Lang = merchant ? "hi-IN" : lang
+  const effectiveLang = lang
 
   async function submit(e: React.FormEvent) {
     e.preventDefault()
@@ -158,7 +154,7 @@ function SourceCard() {
       const res = await fetch("/api/ingest", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ source: active, demo: demoForm, url, text, context, lang: effectiveLang }),
+        body: JSON.stringify({ source: active, demo: "job", url, text, context, lang: effectiveLang }),
       })
       const body = (await res.json()) as { session: Session } | ApiError
       if (!res.ok || "error" in body) {
@@ -184,14 +180,14 @@ function SourceCard() {
   }
 
   return (
-    <form onSubmit={submit} className="reveal surface-lime flex flex-col gap-5 rounded-xl p-6 sm:p-7">
+    <form id="form" onSubmit={submit} className="reveal surface-lime flex flex-col gap-5 rounded-xl p-6 sm:p-7">
       <ResumeBanner />
       <div className="flex items-start justify-between gap-4">
-        <h2 className="display text-4xl uppercase">Pick a form</h2>
+        <h2 className="display text-4xl uppercase">Try it here</h2>
         <span className="label-caps mt-1 border border-current px-2 py-1">Step 1</span>
       </div>
       <p className="-mt-2 text-sm leading-relaxed text-muted-foreground">
-        Paste a link or the questions. Nothing is submitted until you approve it.
+        Run a demo or paste questions. To fill a real form in Chrome, use the extension above.
       </p>
 
       <Tabs value={active} onValueChange={(v) => setTab(v as SourceTab)}>
@@ -216,7 +212,7 @@ function SourceCard() {
             className="h-12 px-4"
           />
           <p className="mt-2 text-xs text-muted-foreground">
-            The form must be open to anyone with the link. For a private one, use the browser extension.
+            This creates a draft only. To fill a real form, use the browser extension.
           </p>
         </TabsContent>
         <TabsContent value="text" className="pt-4">
@@ -237,40 +233,15 @@ function SourceCard() {
           </div>
         </TabsContent>
         <TabsContent value="demo" className="pt-4">
-          <div className="grid grid-cols-2 gap-2" role="group" aria-label="Demo form">
-            {(
-              [
-                ["job", "Job application", "Six questions, English or Hindi"],
-                ["merchant", "Merchant loan", "A shopkeeper, in Hinglish"],
-              ] as const
-            ).map(([id, title, sub]) => (
-              <button
-                key={id}
-                type="button"
-                aria-pressed={demoForm === id}
-                onClick={() => setDemoForm(id)}
-                className={cn(
-                  "border p-3 text-left transition-colors",
-                  demoForm === id ? "border-foreground bg-foreground text-lime" : "hover:bg-foreground/[0.06]"
-                )}
-              >
-                <span className="block text-sm font-semibold">{title}</span>
-                <span className={cn("mt-0.5 block text-xs", demoForm === id ? "opacity-80" : "text-muted-foreground")}>
-                  {sub}
-                </span>
-              </button>
-            ))}
+          <div className="border p-4">
+            <p className="text-sm font-semibold">Job application</p>
+            <p className="mt-1 text-xs text-muted-foreground">Six questions, in English or Hindi.</p>
           </div>
           <p className="mt-3 text-xs leading-relaxed text-muted-foreground">
-            No keys needed: watch a scripted interview, or talk to it yourself.
-            {!merchant && (
-              <>
-                {" "}
-                <a href={replayHref(lang)} className="font-semibold text-foreground underline underline-offset-4">
-                  No network? Replay the recorded demo.
-                </a>
-              </>
-            )}
+            No keys needed: watch a scripted interview, or talk to it yourself.{" "}
+            <a href={replayHref(lang)} className="font-semibold text-foreground underline underline-offset-4">
+              No network? Replay the recorded demo.
+            </a>
           </p>
         </TabsContent>
       </Tabs>
@@ -392,10 +363,7 @@ function SourceCard() {
               type="button"
               aria-pressed={effectiveLang === value}
               lang={value === "hi-IN" ? "hi" : "en"}
-              onClick={() => {
-                setLang(value)
-                if (value === "en-IN") setDemoForm("job")
-              }}
+              onClick={() => setLang(value)}
               className={cn(
                 "px-4 py-2 text-xs font-semibold transition-colors",
                 effectiveLang === value ? "bg-foreground text-lime" : "text-muted-foreground hover:text-foreground",
@@ -638,6 +606,23 @@ export function Landing() {
               Apply करो interviews you out loud, keeps asking until your answers are specific, and
               shows the words behind every line.
             </p>
+            <div className="reveal mt-7 max-w-xl border">
+              <div className="border-b px-4 py-3">
+                <p className="label-caps text-muted-foreground">Quick start</p>
+              </div>
+              <div className="grid sm:grid-cols-2">
+                <a href={EXTENSION_ZIP} className="group border-b p-4 transition-colors hover:bg-foreground hover:text-background sm:border-r sm:border-b-0">
+                  <span className="label-caps text-brand group-hover:text-brand">01 · Recommended</span>
+                  <span className="mt-1.5 flex items-center gap-2 text-sm font-semibold">
+                    <DownloadIcon className="size-4" /> Download the Chrome extension
+                  </span>
+                </a>
+                <a href="#form" className="group p-4 transition-colors hover:bg-foreground hover:text-background">
+                  <span className="label-caps text-brand group-hover:text-brand">02 · Try it first</span>
+                  <span className="mt-1.5 block text-sm font-semibold">Run the job-application demo</span>
+                </a>
+              </div>
+            </div>
             <div className="reveal mt-8 flex flex-wrap items-center gap-x-8 gap-y-3">
               <a href="#live" className="label-caps inline-flex items-center gap-2 text-foreground underline underline-offset-4">
                 See it work <ArrowDownIcon className="size-3.5" />
